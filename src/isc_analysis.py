@@ -42,7 +42,7 @@ def collect_hr_series(experiment_root, session, stim, subjects=None, verbose=Fal
         tsv, js = ecg_paths(experiment_root, subj, session, stim)
         try:            
             _, hr_interp, _, n_peaks, mean_hr = process_single_recording(tsv, js)
-        except FileNotFoundError:
+        except (FileNotFoundError,IndexError):
             # subject numbering in BBBD is not contiguous: some files are absent
             if verbose:
                 print(f"  {subj}: file missing, skipped")
