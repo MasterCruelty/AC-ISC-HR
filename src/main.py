@@ -17,7 +17,7 @@ Switch PHASE below to choose which one to run.
 
 from single_recording import process_single_recording
 from isc_analysis import collect_hr_series, align_series, correlation_matrix, isc_hr
-from significance import run_hypothesis_test
+from hypothesis_test import run_hypothesis_test
 
 EXPERIMENT_ROOT = 'data'   # adjust to the real Experiment 2 root
 PHASE = 3                  # 1 = single-subject pipeline
