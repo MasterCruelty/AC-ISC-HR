@@ -18,6 +18,7 @@ Switch PHASE below to choose which one to run.
 from single_recording import process_single_recording
 from isc_analysis import collect_hr_series, align_series, correlation_matrix, isc_hr
 from hypothesis_test import run_hypothesis_test
+from batch_analysis import run_all_combinations, summary_table
 
 EXPERIMENT_ROOT = 'data'   # adjust to the real Experiment 2 root
 PHASE = 3                  # 1 = single-subject pipeline
@@ -78,6 +79,23 @@ def run_significance_test(session='ses-01', stim='stim01', n_perm=10000, alpha=0
     return ids, isc, result
 
 
+def run_phase2_all():
+    """
+    This function run hypothesis test across all 10(session, stimulus) combinations.
+    """
+    results = run_all_combinations(EXPERIMENT_ROOT, verbose=True)
+    print("\n=== Summary across all 10 combinations ===")
+    for row in summary_table(results):
+        print(f"  {row['session']} {row['stim']}: "
+              f"{row['n_subjects']} subjects ({row['n_dropped']} dropped by QC), "
+              f"mean ISC-HR={row['mean_isc']}, "
+              f"{row['n_significant']}/{row['n_subjects']} significant "
+              f"({row['pct_significant']}%)")
+    return results
+
+
+
+
 if __name__ == '__main__':
     if PHASE == 1:
         run_phase1_pilot()
@@ -85,3 +103,5 @@ if __name__ == '__main__':
         run_phase2()
     elif PHASE == 3:
         run_hypothesis_test()
+    elif PHASE == 4:
+        run_phase2_all()
