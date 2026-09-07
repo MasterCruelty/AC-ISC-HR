@@ -33,11 +33,13 @@ def collect_hr_series(experiment_root, session, stim, subjects=None, verbose=Fal
         Subject ids actually used (only those with a valid recording).
     series : list[np.ndarray]
         One interpolated HR series per subject, in the same order as ids.
+    mean_hrs : list[float]
+        Each subject's mean instantaneous HR (BPM).        
     """
     if subjects is None:
         subjects = list_subjects(experiment_root)
 
-    ids, series = [], []
+    ids, series, mean_hrs = [], [], []
     for subj in subjects:
         tsv, js = ecg_paths(experiment_root, subj, session, stim)
         try:            
@@ -50,11 +52,39 @@ def collect_hr_series(experiment_root, session, stim, subjects=None, verbose=Fal
 
         ids.append(subj)
         series.append(hr_interp)
+        mean_hrs.append(mean_hr)
         if verbose:
             print(f"  {subj}: {n_peaks} peaks, mean HR {mean_hr:.1f} BPM, "
                   f"{len(hr_interp)} samples")
 
-    return ids, series
+    return ids, series, mean_hrs
+
+
+def filter_by_hr_range(ids, series, mean_hrs, low=40.0, high=160.0, verbose=False):
+    """
+    Automatic filter which drops subjects whose mean HR falls outside a physiologically
+    plausible range (default 40-160 BPM).
+
+    Returns
+    -------
+    ids_kept : list[str]
+    series_kept : list[np.ndarray]
+    dropped : list[tuple[str, float]]
+        (subject id, mean HR) for every subject excluded.
+    """
+    ids_kept, series_kept, dropped = [], [], []
+    for subj, s, mhr in zip(ids, series, mean_hrs):
+        if low <= mhr <= high:
+            ids_kept.append(subj)
+            series_kept.append(s)
+        else:
+            dropped.append((subj, mhr))
+            if verbose:
+                print(f"  QC: {subj} excluded (mean HR {mhr:.1f} BPM outside "
+                      f"[{low}, {high}])")
+    return ids_kept, series_kept, dropped
+
+
 
 
 def align_series(series):
