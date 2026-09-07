@@ -31,6 +31,18 @@ def _zscore(x):
     This lets us compute thousands of correlations at once with a single
     matrix multiplication, instead of looping and calling np.corrcoef every
     time.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        Array to standardize. Can be one dimensional (a single series) or 
+        two dimenstional (several rows, for example many shifted versions of a series, or several subjects' series stacked together). 
+        If two dimensional, each row is standardized independently of the others.
+
+    Returns
+    -------
+    np.ndarray, same shape as x
+        The standardized array: every row has mean 0 and standard deviation 1.
     """
     mean = x.mean(axis=-1, keepdims=True)
     std = x.std(axis=-1, keepdims=True)
@@ -49,6 +61,22 @@ def _fisher_average(corrs, axis=-1):
  
     The parameter corrs must not include self-correlation (r=1): 
     arctanh(1) is infinite, and a subject's correlation with itself carries no information anyway.
+
+    Parameters
+    ----------
+    corrs : np.ndarray
+        Correlation values to average. Must not include self-correlation
+        (r=1): arctanh(1) is infinite, and a subject's correlation with
+        itself carries no information.
+    axis : int
+        Which axis to average over, in Fisher-Z space, before converting
+        back. Default is the last axis -1.
+
+    Returns
+    -------
+    np.ndarray or float
+        The averaged correlation(s), back on the original r scale (same
+        shape as corrs, with `axis` removed).
     """
     z = np.arctanh(corrs)
     return np.tanh(np.mean(z, axis=axis))
