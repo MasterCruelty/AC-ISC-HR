@@ -1,14 +1,18 @@
 """
-isc_analysis.py — inter-subject correlation of heart rate (ISC-HR).
+Inter-subject correlation of heart rate (ISC-HR).
 
 single_recording.py processes one recording into an interpolated HR series.
 This file calls that once per subject, then measures how much their heart-rate
 fluctuations move in sync while listening to the same stimulus.
+
+There are also two functions which executes the hypothesis test for one combination(session,stimulus)
+and across all 10 combinations at once.
 """
 
 import numpy as np
 from loading import list_subjects, ecg_paths
 from single_recording import process_single_recording
+from hypothesis_test import run_hypothesis_test
 
 
 def collect_hr_series(experiment_root, session, stim, subjects=None, verbose=False):
@@ -132,3 +136,130 @@ def isc_hr(corr):
     z = np.arctanh(c)                # Fisher-Z of every pairwise correlation
     z_mean = np.nanmean(z, axis=1)   # mean over the rest of the group, per row
     return np.tanh(z_mean)           # inverse Fisher-Z (step 5)
+
+
+def run_isc_hr_pipeline(experiment_root, session, stim, hr_low=40.0, hr_high=160.0,
+                         n_perm=10000, alpha=0.05, seed=42, verbose=False):
+    """
+    This function run the full pipeline of processing ISC-HR across all subjects and
+    does also hypothesis test for one (session,stimulus) combination.
+    
+    1. Collect raw data
+    2. Filtering
+    3. align series
+    4. correlation
+    5. ISC-HR
+    6. hypothesis test.
+
+    Returns
+    -------
+    dict with keys:
+        'session', 'stim'      : str
+        'ids'                  : list[str] -> subjects kept after filtering
+        'dropped'              : list[tuple[str, float]] -> subjects excluded by filtering
+        'isc'                  : np.ndarray -> ISC-HR per subject
+        'p_values'             : np.ndarray -> hypothesis test with p-value output per subject
+        'significant'          : np.ndarray of bool -> results after FDR correction
+        'n_subjects'           : int -> subjects analysed (post-filtering)
+        'n_significant'        : int
+        'mean_isc'             : float -> group mean ISC-HR
+    """
+    ids_raw, series_raw, mean_hrs = collect_hr_series(
+        experiment_root, session, stim, verbose=verbose)
+
+    ids, series, dropped = filter_by_hr_range(
+        ids_raw, series_raw, mean_hrs, low=hr_low, high=hr_high, verbose=verbose)
+
+    aligned = align_series(series)
+    corr = correlation_matrix(aligned)
+    isc = isc_hr(corr)
+
+    result = run_hypothesis_test(aligned, isc, n_perm=n_perm, alpha=alpha, seed=seed)
+
+    return {
+        'session': session,
+        'stim': stim,
+        'ids': ids,
+        'dropped': dropped,
+        'isc': isc,
+        'p_values': result['p_values'],
+        'significant': result['significant'],
+        'n_subjects': len(ids),
+        'n_significant': result['n_significant'],
+        'mean_isc': float(isc.mean()),
+    }
+
+
+SESSIONS = ['ses-01', 'ses-02']   # 01 Attentive, 02 Distracted
+STIMULI = ['stim01', 'stim02', 'stim03', 'stim04', 'stim05']
+
+
+def run_pipeline_all_combinations(experiment_root, sessions=None, stimuli=None,
+                          hr_low=40.0, hr_high=160.0, n_perm=10000, alpha=0.05,
+                          seed=42, verbose=False):
+    """
+    This function run the full pipeline for every(session,stimulus) pair.
+
+    Regarding the session 2 (Distracted), this functions runs the same standard
+    within-group correlation as for session 1 (Attentive).
+    run_isc_hr_pipeline does not reproduce the paper reference result using attentive-referenced method.
+
+    Parameters
+    ----------
+    experiment_root : str
+    sessions, stimuli : list[str] or None
+        Defaults to the full 2x5 = 10 combinations (SESSIONS, STIMULI above).
+    hr_low, hr_high : float
+        filter bounds passed to filter_by_hr_range.
+    n_perm, alpha, seed : 
+        same as in hypothesis_test.run_hypothesis_test.
+    verbose : bool
+        If True, print progress for each combination as it runs.
+
+    Returns
+    -------
+    list[dict]
+        One result dict per combination.
+    """
+    sessions = sessions if sessions is not None else SESSIONS
+    stimuli = stimuli if stimuli is not None else STIMULI
+
+    results = []
+    for session in sessions:
+        for stim in stimuli:
+            if verbose:
+                print(f"=== {session}, {stim} ===")
+            r = run_isc_hr_pipeline(
+                experiment_root, session, stim,
+                hr_low=hr_low, hr_high=hr_high,
+                n_perm=n_perm, alpha=alpha, seed=seed, verbose=verbose)
+            results.append(r)
+            if verbose:
+                print(f"  {r['n_subjects']} subjects, mean ISC-HR={r['mean_isc']:.3f}, "
+                      f"{r['n_significant']}/{r['n_subjects']} significant\n")
+
+    return results
+
+
+def summary_table(results):
+    """
+    Reduce the list of per-combination result dicts to a compact list of
+    rows, one per combination.
+
+    Returns
+    -------
+    list[dict], each with: session, stim, n_subjects, n_dropped, mean_isc,
+    n_significant, pct_significant
+    """
+    rows = []
+    for r in results:
+        rows.append({
+            'session': r['session'],
+            'stim': r['stim'],
+            'n_subjects': r['n_subjects'],
+            'n_dropped': len(r['dropped']),
+            'mean_isc': round(r['mean_isc'], 4),
+            'n_significant': r['n_significant'],
+            'pct_significant': round(100 * r['n_significant'] / r['n_subjects'], 1),
+        })
+    return rows

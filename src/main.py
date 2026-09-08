@@ -12,22 +12,21 @@ Chooses what to run:
                recomputing it.
 
 Set EXPERIMENT_ROOT to the Experiment root on your machine.
-Switch PHASE below to choose which one to run.
+Set STAGES_TO_RUN below to choose which one to run.
 """
 
 from single_recording import process_single_recording
-from isc_analysis import collect_hr_series, align_series, correlation_matrix, isc_hr
+from isc_analysis import run_isc_hr_pipeline, run_all_combinations, summary_table
 from hypothesis_test import run_hypothesis_test
-from isc_hypothesis_test_all_combinations import run_all_combinations, summary_table
 
 EXPERIMENT_ROOT = 'data'   # adjust to the real Experiment 2 root
-PHASE = 3                  # 1 = single-subject pipeline
-                           # 2 = full ISC-HR
-                           # 3 = ISC-HR + hypothesis test
 
+STAGES_TO_RUN = [1, 2, 3]       # Executes all stages
+#STAGES_TO_RUN = [1]             # Executes only single subject ECG processing pipeline
+#STAGES_TO_RUN = [2]             # Executes only ISC-HR for all subjects and hypothesis test on a single combination(session,stimulus)
 
-def run_phase1_pilot():
-    """Stage 1 on the pilot recording only"""
+def run_stage1_pilot():
+    """Stage 1: single subject ECG processing pipeline"""
     tsv = f'{EXPERIMENT_ROOT}/sub-01/ses-01/beh/sub-01_ses-01_task-stim01_recording-ecg_physio.tsv.gz'
     js = f'{EXPERIMENT_ROOT}/sub-01/ses-01/beh/sub-01_ses-01_task-stim01_recording-ecg_physio.json'
 
@@ -37,53 +36,30 @@ def run_phase1_pilot():
           f"spanning {t_common[-1] - t_common[0]:.1f} s")
 
 
-def run_phase2(session='ses-01', stim='stim01'):
-    """Stage 2: ISC-HR across all subjects for one (session, stim)."""
-    ids, series = collect_hr_series(EXPERIMENT_ROOT, session, stim, verbose=True)
-    print(f"\nCollected {len(ids)} subjects.")
+def run_stage2(session='ses-01', stim='stim01'):
+    """Stage 2: ISC-HR across all subjects and hypothesis test for one (session, stim) combination."""
+    r = run_isc_hr_pipeline(EXPERIMENT_ROOT, session, stim,
+                             n_perm=n_perm, alpha=alpha, seed=seed, verbose=True)
 
-    aligned = align_series(series)
-    print(f"Aligned to {aligned.shape[1]} samples each.")
-
-    corr = correlation_matrix(aligned)
-    isc = isc_hr(corr)
-
-    print("\nISC-HR per subject:")
-    for subj, val in zip(ids, isc):
-        print(f"  {subj}: {val:.3f}")
-    print(f"\nGroup mean ISC-HR: {isc.mean():.3f}")
-
-    return ids, aligned, corr, isc
-
-
-
-def run_significance_test(session='ses-01', stim='stim01', n_perm=10000, alpha=0.05, seed=42):
-    """
-    This function execute Hypothesis test, which indicates whether each subject's ISC-HR is significant.
-    It does via circular-shift permutation, with Benjamini-Hochberg FDR correction across subjects.
-    """
-
-    ids, aligned, corr, isc = run_phase2(session=session, stim=stim)
- 
-    print(f"\nRunning hypothesis test ({n_perm} permutations per subject)...")
-    result = run_significance_test(aligned, isc, n_perm=n_perm, alpha=alpha, seed=seed)
- 
-    print("\nHypothesis results (FDR-corrected, alpha={:.2f}):".format(alpha))
-    for subj, val, p, sig in zip(ids, isc, result['p_values'], result['significant']):
+    print(f"\n{r['n_subjects']} subjects analysed "
+          f"({len(r['dropped'])} dropped by QC).")
+    print("\nISC-HR + hypothesis test per subject:")
+    for subj, val, p, sig in zip(r['ids'], r['isc'], r['p_values'], r['significant']):
         flag = '*' if sig else ' '
         print(f"  {subj}: ISC-HR={val:.3f}, p={p:.4f} {flag}")
- 
-    print(f"\n{result['n_significant']} / {result['n_subjects']} subjects "
+    print(f"\nGroup mean ISC-HR: {r['mean_isc']:.3f}")
+    print(f"{r['n_significant']} / {r['n_subjects']} subjects "
           f"significant after FDR correction.")
- 
-    return ids, isc, result
+
+    return r
 
 
-def run_phase2_all():
+def run_stage3_all_combinations(session='ses-01', stim='stim01', n_perm=10000, alpha=0.05, seed=42):
     """
     This function run hypothesis test across all 10(session, stimulus) combinations.
     """
-    results = run_all_combinations(EXPERIMENT_ROOT, verbose=True)
+    results = run_all_combinations(EXPERIMENT_ROOT, verbose=False)
+
     print("\n=== Summary across all 10 combinations ===")
     for row in summary_table(results):
         print(f"  {row['session']} {row['stim']}: "
@@ -93,15 +69,16 @@ def run_phase2_all():
               f"({row['pct_significant']}%)")
     return results
 
-
-
-
 if __name__ == '__main__':
-    if PHASE == 1:
-        run_phase1_pilot()
-    elif PHASE == 2:
-        run_phase2()
-    elif PHASE == 3:
-        run_hypothesis_test()
-    elif PHASE == 4:
-        run_phase2_all()
+    stages = {
+        1: ('Stage 1: single subject ECG processing pipeline', run_stage1_pilot),
+        2: ('Stage 2: ISC-HR and hypothesis test for one combination of (session,stimulus)', run_stage2),
+        3: ('Stage 3: hypothesis test for all 10 combinations of (session,stimulus)', run_stage3_all_combinations),
+    }
+
+    for stage in STAGES_TO_RUN:
+        label, func = stages[stage]
+        print(f"\n{'=' * 70}")
+        print(f"  {label}")
+        print(f"{'=' * 70}\n")
+        func()
