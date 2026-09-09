@@ -18,7 +18,7 @@ This is done indepenently per subject, then Benjamini-Hochberg FDR correction is
 import numpy as np
 
 
-def _zscore(x):
+def zscore(x):
     """
     It standardizes each row to mean 0 and standard deviation 1.
 
@@ -49,7 +49,7 @@ def _zscore(x):
     return (x - mean) / std
 
 
-def _fisher_average(corrs, axis=-1):
+def fisher_average(corrs, axis=-1):
     """
     It converts each correlation to Fisher-Z (z = arctanh).
     It average the z-values and convert the average back to a correlation (r = tanh(z)).
@@ -82,7 +82,7 @@ def _fisher_average(corrs, axis=-1):
     return np.tanh(np.mean(z, axis=axis))
 
 
-def null_distribution_for_subject(subject_idx, aligned, n_perm=10000, rng=None):
+def null_distribution_for_subject(subject_series, others, n_perm=10000, rng=None):
     """
     This function builds the null distribution for one subject.
     It answers the following question:
@@ -102,10 +102,13 @@ def null_distribution_for_subject(subject_idx, aligned, n_perm=10000, rng=None):
 
     Parameters
     ----------
-    subject_idx : int
-        Row index (in `aligned`) of the subject being tested.
-    aligned : np.ndarray, shape (n_subjects, n_samples)
-        Output of isc_analysis.align_series.
+    subject_series : int
+        The one subject's own HR series being tested.
+    others: np.ndarray, shape (n_reference, n_samples)
+        The reference group to correlate the shifted versions against. 
+        For the standard within-group case this is "the rest of the same group".
+        For the attentive-referenced case this is the fixed attentive group instead.
+
     n_perm : int
         Number of circular-shift permutations (10,000 in this case).
     rng : np.random.Generator or None
@@ -119,24 +122,21 @@ def null_distribution_for_subject(subject_idx, aligned, n_perm=10000, rng=None):
     if rng is None:
         rng = np.random.default_rng()
 
-    n_subjects, n_samples = aligned.shape
-    subject_series = aligned[subject_idx]
-    others = np.delete(aligned, subject_idx, axis=0)   
-
+    n_samples = len(subject_series)
+    
     # one random shift amount per permutation
     shifts = rng.integers(1, n_samples, size=n_perm)
 
-    
     idx = (np.arange(n_samples)[None, :] - shifts[:, None]) % n_samples
-    shifted = subject_series[idx]  
-
+    shifted = subject_series[idx]
+    
     # Pearson correlation of every shifted version against every other subject,
     # via standardized dot product: r = (z_shifted . z_other) / n_samples
-    z_shifted = _zscore(shifted)                        # (n_perm, n_samples)
-    z_others = _zscore(others)                          # (n_subjects-1, n_samples)
-    corrs = (z_shifted @ z_others.T) / n_samples         # (n_perm, n_subjects-1)
+    z_shifted = zscore(shifted)                        # (n_perm, n_samples)
+    z_others = zscore(others)                          # (n_subjects-1, n_samples)
+    corrs = (z_shifted @ z_others.T) / n_samples       # (n_perm, n_subjects-1)
 
-    return _fisher_average(corrs, axis=1)                # (n_perm,)
+    return fisher_average(corrs, axis=1)               # (n_perm,)
 
 
 def permutation_test(aligned, isc_observed, n_perm=10000, seed=None, verbose=False):
