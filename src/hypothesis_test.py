@@ -139,7 +139,7 @@ def null_distribution_for_subject(subject_series, others, n_perm=10000, rng=None
     return fisher_average(corrs, axis=1)               # (n_perm,)
 
 
-def permutation_test(aligned, isc_observed, n_perm=10000, seed=None, verbose=False):
+def permutation_test(aligned, isc_observed, n_perm=10000, seed=None, verbose=False,others_list=None):
     """
     This function run the circular shift premutation test for every subject and return one p-value per subject.
     For each subject, it builds a null distribution of ISC-HR values and computes a one-tailed p-value.
@@ -171,7 +171,9 @@ def permutation_test(aligned, isc_observed, n_perm=10000, seed=None, verbose=Fal
     p_values = np.empty(n_subjects)
 
     for i in range(n_subjects):
-        null = null_distribution_for_subject(i, aligned, n_perm=n_perm, rng=rng)
+        subject_series = aligned[i] 
+        others = others_list[i] if others_list is not None else np.delete(aligned, i, axis=0)
+        null = null_distribution_for_subject(subject_series, others, n_perm=n_perm, rng=rng)
         # With the plain proportion, a subject whose observed value beats all 10,000 permutations gets
         # p = 0 exactly, which claims chance could never produce this result.
         n_exceeding = np.sum(null >= isc_observed[i])
@@ -229,7 +231,7 @@ def benjamini_hochberg(p_values, alpha=0.05):
     return significant
 
 
-def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=None, verbose=False):
+def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=None, verbose=False,others_list=None):
     """
     This function run the full hypothesis test (permutation test + FDR correction).
     
@@ -245,7 +247,7 @@ def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=No
         'n_subjects'  : int — total subjects tested
     """
     p_values = permutation_test(aligned, isc_observed, n_perm=n_perm,
-                                 seed=seed, verbose=verbose)
+                                 seed=seed, verbose=verbose, others_list=others_list)
     significant = benjamini_hochberg(p_values, alpha=alpha)
 
     return {
