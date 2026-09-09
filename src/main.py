@@ -16,7 +16,7 @@ Set STAGES_TO_RUN below to choose which one to run.
 """
 
 from single_recording import process_single_recording
-from isc_analysis import run_isc_hr_pipeline, run_all_combinations, summary_table
+from isc_analysis import run_isc_hr_pipeline, run_pipeline_all_combinations, summary_table
 from hypothesis_test import run_hypothesis_test
 
 EXPERIMENT_ROOT = 'data'   # adjust to the real Experiment 2 root
@@ -36,7 +36,7 @@ def run_stage1_pilot():
           f"spanning {t_common[-1] - t_common[0]:.1f} s")
 
 
-def run_stage2(session='ses-01', stim='stim01'):
+def run_stage2(session='ses-01', stim='stim01', n_perm=10000, alpha=0.05, seed=42):
     """Stage 2: ISC-HR across all subjects and hypothesis test for one (session, stim) combination."""
     r = run_isc_hr_pipeline(EXPERIMENT_ROOT, session, stim,
                              n_perm=n_perm, alpha=alpha, seed=seed, verbose=True)
@@ -58,7 +58,7 @@ def run_stage3_all_combinations(session='ses-01', stim='stim01', n_perm=10000, a
     """
     This function run hypothesis test across all 10(session, stimulus) combinations.
     """
-    results = run_all_combinations(EXPERIMENT_ROOT, verbose=False)
+    results = run_pipeline_all_combinations(EXPERIMENT_ROOT, verbose=False)
 
     print("\n=== Summary across all 10 combinations ===")
     for row in summary_table(results):
