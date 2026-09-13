@@ -77,7 +77,17 @@ def run_stage4_attention_modulation(n_perm=10000, alpha=0.05, seed=42):
     This function run the attentive-referenced correlation for the distracted condition.
     Then it does a paired comparison across all 5 stimulus.
     """
-    result = run_attention_modulation(EXPERIMENT_ROOT, n_perm=n_perm, alpha=alpha, seed=seed, verbose=True)
+    result = run_attention_modulation(EXPERIMENT_ROOT, n_perm=n_perm, alpha=alpha, seed=seed, verbose=False)
+
+    print("\n=== Per-subject significance (attentive-referenced method) ===")
+    for r in result['per_stim']:
+        att_r = r['attentive_result']
+        dis_r = r['distracted_result']
+        print(f"  {r['stim']}:")
+        print(f"    attentive:  {att_r['n_significant']}/{att_r['n_subjects']} significant "
+              f"({100*att_r['n_significant']/att_r['n_subjects']:.1f}%)")
+        print(f"    distracted: {dis_r['n_significant']}/{dis_r['n_subjects']} significant "
+              f"({100*dis_r['n_significant']/dis_r['n_subjects']:.1f}%)")
 
     print("\n=== Attention modulation of ISC-HR ===")
     print(f"Shapiro-Wilk normality check: "
@@ -88,7 +98,6 @@ def run_stage4_attention_modulation(n_perm=10000, alpha=0.05, seed=42):
         print(f"  {t['stim']}: n={t['n']}, statistic={t['statistic']:.4f}, p={t['p_value']:.4f}")
 
     return result
-
 
 #############################################
 #           MAIN    
