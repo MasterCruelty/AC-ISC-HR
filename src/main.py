@@ -84,10 +84,12 @@ def run_stage4_attention_modulation(n_perm=10000, alpha=0.05, seed=42):
         att_r = r['attentive_result']
         dis_r = r['distracted_result']
         print(f"  {r['stim']}:")
-        print(f"    attentive:  {att_r['n_significant']}/{att_r['n_subjects']} significant "
-              f"({100*att_r['n_significant']/att_r['n_subjects']:.1f}%)")
-        print(f"    distracted: {dis_r['n_significant']}/{dis_r['n_subjects']} significant "
-              f"({100*dis_r['n_significant']/dis_r['n_subjects']:.1f}%)")
+        print(f"    attentive:  mean ISC-HR={r['attentive_isc'].mean():.4f}, "
+            f"{att_r['n_significant']}/{att_r['n_subjects']} significant "
+            f"({100*att_r['n_significant']/att_r['n_subjects']:.1f}%)")
+        print(f"    distracted: mean ISC-HR={r['distracted_isc'].mean():.4f}, "
+            f"{dis_r['n_significant']}/{dis_r['n_subjects']} significant "
+            f"({100*dis_r['n_significant']/dis_r['n_subjects']:.1f}%)")
 
     print("\n=== Attention modulation of ISC-HR ===")
     print(f"Shapiro-Wilk normality check: "
