@@ -147,6 +147,90 @@ This work uses data from the Brain, Body and Behavior Dataset (BBBD)~\cite{bbbd}
 
 \section{Related Work}\label{Sec2}
 
+The original paper~\cite{perez2021} computes ISC-HR by correlating each subject's instantaneous heart-rate fluctuations against the rest of the group, averaging the resulting pairwise correlations in Fisher-Z space, and testing significance via a circular-shift permutation procedure with False Discovery Rate (FDR) correction.
+The study reports three main findings across four experiments.\\
+
+
+The first one (R1) shows that heart-rate fluctuations synchronize across subjects listening to the same auditory narrative, with 17 of 27 subjects having ISC-HR statistically significant.\\
+
+The second result (R2) shows this synchrony is systematically higher when subjects attend to a stimulus than when they are distracted.\\
+
+The third result (R3) shows that ISC-HR predicts subsequent memory recall performance for the narrative content, suggesting that the measure reflects conscious engagement rather than an autonomic response to sensory input.\\
+
+The fourth experiment applies ISC-HR to patients with disorders of consciousness, showing reduced synchrony relative to healthy controls and framing ISC-HR as a potential prognostic marker in a clinical setting.
+
+As already anticipated, this project replicates only R1 and R2 using an experiment equivalent to the original study's experiment 2.\\
+
+\section{Dataset}\label{sec3}
+
+This project uses Experiment 2 of the BBBD dataset~\cite{bbbd}, which contains recordings of ECG, EEG, eye-tracking, and respiration during educational video viewing.\\
+
+In experiment 2, 31 subjects watch five educational videos, each one viewed twice by the same subject: attentively the first time, distracted by performing a secondary task (silently counting backward) the second time.
+
+BBBD's data descriptor~\cite{bbbd} explicitly states that the ECG data provided for this experiment are not newly collected, but are the same recordings originally published in Pérez et al., 2021~\cite{perez2021}.\\
+
+ECG preprocessing documentation~\cite{bbbd} states that R-wave peaks were detected automatically and then manually corrected.
+This project instead detects R-peaks directly from the raw ECG signal using an automated procedure, without using BBBD's provided peak timestamps and without manual review.\\
+This choice was made in order to reproduce and understand the original study's methodology.\\
+
+Not every subject has a usable recording for every (subject, session, stimulus) combination. Missing files are skipped automatically, so the number of subjects analyzed varies slightly across stimuli and conditions.
+
+
+\section{Methodology}\label{sec4}
+
+introduction to methods used
+Qui hai già quasi tutto pronto, solo da sintetizzare (i documenti supplementari sono la versione "lunga", qui ne fai il riassunto):
+
+
+\subsection{Signal preprocessing}\label{subsec1}
+
+da HR-Pipeline-Note.pdf + Butterworth-Filter-Note.pdf: filtro, picchi, HR istantanea, interpolazione
+
+\subsection{ISC-HR computation}\label{subsec2}
+
+da Hypothesis-Test-R1-Note.pdf Sezione 1: Fisher-Z, Step 3-5 del paper
+
+
+\subsection{Hypothesis test}\label{subsec3}
+
+permutazione circolare, Benjamini-Hochberg
+
+
+\subsection{Attention modulation}\label{subsec4}
+
+da R2-Attention-Modulation-Note.pdf: correlazione a riferimento fisso, esclusione dell'auto-correlazione, Shapiro-Wilk + t-test/Wilcoxon.
+
+\subsection{Implementation choices}\label{subsec5}
+
+(opzionale, se vuoi una tabella riassuntiva) — QC, i parametri non specificati dal paper, tutti già tracciati nei documenti
+
+\section{Results}\label{sec5}
+
+Qui attingi principalmente da Final-Results-R1-R2-Discussion.pdf, che è già scritto quasi in forma di risultati/discussione:
+
+\subsection{Input validation}\label{subsec6}
+
+\subsection{R1 on all combinations of (session, stimulus)}\label{subsec7}
+
+\subsection{Significant stimulus}\label{subsec8}
+
+\subsection{Stimulus 02 case}\label{subsec9}
+
+
+\section{Discussion}\label{sec6}
+
+Confronto con le cifre del paper (con le cautele che abbiamo già scritto), limiti dichiarati (niente ANOVA completa, sensibilità all'interpolazione non testata, scelte QC/esclusione non specificate dal paper), interpretazione del pattern generale.
+
+\section{Conclusion}\label{sec7}
+
+Cosa hai dimostrato, cosa resta aperto (R3, metodo esatto per test multipli, ecc.).
+
+8. References
+
+Paper Pérez et al., documentazione BBBD/Zenodo, eventuali librerie citate.
+
+
+
 
 \section*{Declarations}
 \textbf{Ai Usage Disclaimer:} parts of this project have been realized with the assistance of ChatGPT(model GPT-5.3) and Claude(model Sonnet 4.6) for the following types of tasks:
