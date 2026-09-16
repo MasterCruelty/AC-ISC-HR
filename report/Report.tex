@@ -57,6 +57,10 @@
 \usepackage{listings}%
 \usepackage{tikz}%
 \usetikzlibrary{arrows.meta, positioning, calc}%
+
+
+% Specifica la cartella dove si trovano le immagini
+\graphicspath{ {./img/} }
 %%%%
 
 %%%%%=============================================================================%%%%
@@ -167,7 +171,7 @@ As already anticipated, this project replicates only R1 and R2 using an experime
 
 This project uses Experiment 2 of the BBBD dataset~\cite{bbbd}, which contains recordings of ECG, EEG, eye-tracking, and respiration during educational video viewing.\\
 
-In experiment 2, 31 subjects watch five educational videos, each one viewed twice by the same subject: attentively the first time, distracted by performing a secondary task (silently counting backward) the second time.
+In experiment 2, 31 subjects watch five educational videos, each one viewed twice by the same subject: attentively the first time, distracted by performing a secondary task (silently counting backward) the second time. The extracted data have a sampling frequency 128Hz with a total duration close to 3 minutes of ECG signals.
 
 BBBD's data descriptor~\cite{bbbd} explicitly states that the ECG data provided for this experiment are not newly collected, but are the same recordings originally published in Pérez et al., 2021~\cite{perez2021}.\\
 
@@ -180,7 +184,8 @@ Not every subject has a usable recording for every (subject, session, stimulus) 
 
 \section{Methodology}\label{sec4}
 
-This chapter describes the full process from raw ECG signals to the statistical tests used to replicate R1 and R2.
+This chapter describes the full process from raw ECG signals to the statistical tests used to replicate R1 and R2.\\
+Most of the process follows the methodology described in the original paper.
 
 
 \begin{figure}[htbp]
@@ -246,36 +251,95 @@ Considering the dataset's 128 Hz sampling rate, the Nyquist limit is therefore 6
 R-peaks are detected by using an adaptive amplitude threshold.
 The chosen value is $3\times$ standard deviations of the filtered signal. This is combined with a 0.3s temporal distance between consecutive detections.\\
 
-Instantaneous heart rate was computed as the inverse of successive R-R intervals $\frac{60}{RR}$ (BPM), where RR is the time interval between two consecutive R-peaks. Then it's resampled onto a common 4Hz grid via interpolation to allow comparison across subjects.\\
+Instantaneous heart rate was computed as the inverse of consecutive R-R intervals $\frac{60}{RR}$ (BPM), where RR is the time interval between two consecutive R-peaks. Then it's resampled onto a common 4Hz grid via interpolation to allow comparison across subjects. \\
+
+This last step is made because instantaneous HR series have one value per heartbeat and themselves do not occur at fixed intervals. The requirement for the next step which is computing a Pearson correlation between the HR signals of different subjects requires vectors of equal length, aligned on the same time points.\\
 
 Subjects whose mean heart rate fell outside a plausible range (40-160 BPM) were automatically excluded from further analysis in order to improve the quality of the results.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{raw_signal_1sub.png}
+    \caption{Full raw ECG signal of a single subject on a single session and one stimulus.}
+    \label{fig:raw_signal_1sub}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{raw_filter_high_notch_1sub.png}
+    \caption{Raw ECG signal and after filters are applied.}
+    \label{fig:raw_filter_high_notch_1sub}
+\end{figure}
 
 \subsection{ISC-HR computation}\label{subsec2}
 
-In order to compute ISC-HR, all subjects' interpolated HR series were truncated to their shortest common length and arranged into a matrix of pairwise Pearson correlations.\\
-Each subject's ISC-HR was computed as the FIsher-Z average of their correlation with every other subject in the group, excluding self-correlation. This is followed by the inverse Fisher-Z transform.
+In order to compute ISC-HR, all subjects' interpolated HR series are truncated to their shortest common length and arranged into a matrix of pairwise Pearson correlations.\\
 
+Each subject's ISC-HR is computed as follows:
+\begin{equation}
+\text{ISC-HR}_i = \tanh\left(\frac{1}{N-1}\sum_{j \neq i} \text{arctanh}(r_{ij})\right)
+\end{equation}
+where $r_{ij}$ is the Pearson correlation between subject $i$ and subject $j$, and self-correlation ($j=i$) is excluded. Correlations are first transformed with the Fisher-Z transform ($\text{arctanh}$) before averaging. The inverse transform ($\tanh$) then maps the average back onto the original correlation scale.
 
-da Hypothesis-Test-R1-Note.pdf Sezione 1: Fisher-Z, Step 3-5 del paper
 
 
 \subsection{Hypothesis test}\label{subsec3}
 
-permutazione circolare, Benjamini-Hochberg
+In order to establish statistical significance of each subject's ISC-HR, a circular-shift permutation test is computed.\\
 
+The subject's HR series is circularly shifted by a random amount and re-correlated against the reference group. This is repeated $B=10{.}000$ times to build a null distribution, which is the set of ISC-HR values that subject would obtain purely by chance.\\
+
+The p-value is the fraction of the $B$ null values that are at least as large as the subject's real observed ISC-HR. It measures how surprising the observed value is under the assumption of no true synchrony.\\
+A small p-value means it would be rare, by chance alone, to obtain a value this large.
+
+In practice, this fraction is computed as:
+\begin{equation}
+p = \frac{1 + \text{count}}{B + 1}
+\end{equation}
+where $\text{count}$ is the number of null values at least as large as the observed ISC-HR. The reason: if the observed value exceeds all $B$ permutations, the plain proportion returns exactly $p=0$, incorrectly claiming chance could never produce such a result. The $+1$ correction bounds the smallest reportable p-value at $\frac{1}{B+1}$ instead.\\
+
+Benjamini-Hochberg FDR correction is then applied across all subjects within each combination.\\
 
 \subsection{Attention modulation}\label{subsec4}
 
-da R2-Attention-Modulation-Note.pdf: correlazione a riferimento fisso, esclusione dell'auto-correlazione, Shapiro-Wilk + t-test/Wilcoxon.
+
+Following Pérez et. al, 2021~\cite{perez2021} STAR Methods, ISC-HR for the distracted condition was computed against a fixed reference: each distracted subject's series was correlated against the entire attentive group, rather than against other distracted subjects.\\
+
+For each of the five stimuli, the attentive-minus-distracted ISC-HR difference was computed per subject (restricted to subjects with a usable recording in both conditions). A Shapiro-Wilk normality test was run once on the pooled differences across all five stimuli to decide between a paired $t$-test and a Wilcoxon signed-rank test; the chosen test was then applied uniformly to each stimulus individually.\\
+The chosen test is then applied uniformly to each stimulus individually, testing whether the difference between the attentive and distracted ISC-HR is significantly different from zero. \\
+A significant result ($p<0.05$) for a given stimulus indicates that attention modulates ISC-HR for that stimulus, addressing R2.
 
 \subsection{Implementation choices}\label{subsec5}
 
-(opzionale, se vuoi una tabella riassuntiva) — QC, i parametri non specificati dal paper, tutti già tracciati nei documenti
+Several parameters were not specified in the original paper and required to make implementation choices.\\
+
+\begin{itemize}
+\item The amplitude threshold for heartbeat peak detection.
+\item Physiological HR range used for quality control.
+\item Interpolation method for resampling.
+\end{itemize}
+
+Two other choices were also made for simplicity:
+
+\begin{itemize}
+\item Regarding R1, ISC-HR in the distracted condition is computed within-group (distracted subjects correlated against each other) rather than using the attentive-referenced method. The latter is used specifically to replicate R2, where the attentive-distracted comparison requires it.
+\item This project does not use the original paper's ANOVA method, which tests both factors (attention $\times$ stimulus) and their interaction together in a single model. R2 instead uses five separate paired tests, one per stimulus[~\ref{subsec4}].
+\end{itemize}
+
 
 \section{Results}\label{sec5}
 
 Qui attingi principalmente da Final-Results-R1-R2-Discussion.pdf, che è già scritto quasi in forma di risultati/discussione:
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pearson_corr.png}
+    \caption{Pearson correlation matrix. Entry (i, j) is the Pearson correlation between subject i and subject j. The dark diagonal is each subject with itself (r = 1)}
+    \label{fig:pearson_corr}
+\end{figure}
+
+
 
 \subsection{Input validation}\label{subsec6}
 
