@@ -136,7 +136,7 @@ The results provide a statistically grounded replication of ISC-HR modulation by
 \section{Introduction}\label{sec1}
 
 Heart rate is often treated as a purely autonomic signal, reflecting internal physiological states such as arousal or stress.\\
-A recent study suggest that heart-rate fluctuations can be driven by external stimuli.
+A recent study suggests that heart-rate fluctuations can be driven by external stimuli.
 When multiple individuals are exposed to the same narrative content, their heart rates tend to fluctuate in a similar way.\\
 This phenomenon is known as inter-subject correlation of heart-rate (ISC-HR).\\
 
@@ -171,7 +171,8 @@ As already anticipated, this project replicates only R1 and R2 using an experime
 
 This project uses Experiment 2 of the BBBD dataset~\cite{bbbd}, which contains recordings of ECG, EEG, eye-tracking, and respiration during educational video viewing.\\
 
-In experiment 2, 31 subjects watch five educational videos, each one viewed twice by the same subject: attentively the first time, distracted by performing a secondary task (silently counting backward) the second time. The extracted data have a sampling frequency 128Hz with a total duration close to 3 minutes of ECG signals.
+In experiment 2, 31 subjects watch five educational videos, each one viewed twice by the same subject: attentively the first time, distracted by performing a secondary task (silently counting backward) the second time. \\
+ECG recordings were sampled at 128 Hz, with stimulus duration ranging from approximately 2.5 to 6.5 minutes depending on the video.
 
 BBBD's data descriptor~\cite{bbbd} explicitly states that the ECG data provided for this experiment are not newly collected, but are the same recordings originally published in Pérez et al., 2021~\cite{perez2021}.\\
 
@@ -303,9 +304,9 @@ Benjamini-Hochberg FDR correction is then applied across all subjects within eac
 \subsection{Attention modulation}\label{subsec4}
 
 
-Following Pérez et. al, 2021~\cite{perez2021} STAR Methods, ISC-HR for the distracted condition was computed against a fixed reference: each distracted subject's series was correlated against the entire attentive group, rather than against other distracted subjects.\\
+Following Pérez et al., 2021~\cite{perez2021} STAR Methods, ISC-HR for the distracted condition was computed against a fixed reference: each distracted subject's series was correlated against the entire attentive group, rather than against other distracted subjects.\\
 
-For each of the five stimuli, the attentive-minus-distracted ISC-HR difference was computed per subject (restricted to subjects with a usable recording in both conditions). A Shapiro-Wilk normality test was run once on the pooled differences across all five stimuli to decide between a paired $t$-test and a Wilcoxon signed-rank test; the chosen test was then applied uniformly to each stimulus individually.\\
+For each of the five stimuli, the attentive-minus-distracted ISC-HR difference was computed per subject (restricted to subjects with a usable recording in both conditions). A Shapiro-Wilk normality test was run once on the pooled differences across all five stimuli to decide between a paired $t$-test and a Wilcoxon signed-rank test.\\
 The chosen test is then applied uniformly to each stimulus individually, testing whether the difference between the attentive and distracted ISC-HR is significantly different from zero. \\
 A significant result ($p<0.05$) for a given stimulus indicates that attention modulates ISC-HR for that stimulus, addressing R2.
 
@@ -314,7 +315,7 @@ A significant result ($p<0.05$) for a given stimulus indicates that attention mo
 Several parameters were not specified in the original paper and required to make implementation choices.\\
 
 \begin{itemize}
-\item The amplitude threshold for heartbeat peak detection.
+\item The amplitude threshold and refractory distance for R-peak detection.
 \item Physiological HR range used for quality control.
 \item Interpolation method for resampling.
 \end{itemize}
