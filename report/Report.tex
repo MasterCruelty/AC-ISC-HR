@@ -55,6 +55,8 @@
 \usepackage{algorithmicx}%
 \usepackage{algpseudocode}%
 \usepackage{listings}%
+\usepackage{tikz}%
+\usetikzlibrary{arrows.meta, positioning, calc}%
 %%%%
 
 %%%%%=============================================================================%%%%
@@ -130,7 +132,7 @@ The results provide a statistically grounded replication of ISC-HR modulation by
 \section{Introduction}\label{sec1}
 
 Heart rate is often treated as a purely autonomic signal, reflecting internal physiological states such as arousal or stress.\\
-Recent studies suggest that heart-rate fluctuations can be driven by external stimuli.
+A recent study suggest that heart-rate fluctuations can be driven by external stimuli.
 When multiple individuals are exposed to the same narrative content, their heart rates tend to fluctuate in a similar way.\\
 This phenomenon is known as inter-subject correlation of heart-rate (ISC-HR).\\
 
@@ -151,7 +153,7 @@ The original paper~\cite{perez2021} computes ISC-HR by correlating each subject'
 The study reports three main findings across four experiments.\\
 
 
-The first one (R1) shows that heart-rate fluctuations synchronize across subjects listening to the same auditory narrative, with 17 of 27 subjects having ISC-HR statistically significant.\\
+The first one (R1) shows that heart-rate fluctuations synchronize across subjects listening to the same auditory narrative, with 17 of 27 subjects having statistically significant ISC-HR.\\
 
 The second result (R2) shows this synchrony is systematically higher when subjects attend to a stimulus than when they are distracted.\\
 
@@ -178,15 +180,82 @@ Not every subject has a usable recording for every (subject, session, stimulus) 
 
 \section{Methodology}\label{sec4}
 
-introduction to methods used
-Qui hai già quasi tutto pronto, solo da sintetizzare (i documenti supplementari sono la versione "lunga", qui ne fai il riassunto):
+This chapter describes the full process from raw ECG signals to the statistical tests used to replicate R1 and R2.
+
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=0.4cm,
+  box1/.style={draw=blue!55!black, fill=blue!8, rounded corners, minimum height=1.3cm,
+               minimum width=2.5cm, align=center, font=\small, line width=1pt},
+  box2/.style={draw=green!45!black, fill=green!8, rounded corners, minimum height=1.4cm,
+               minimum width=2.9cm, align=center, font=\small, line width=1pt},
+  arr/.style={-{Latex[length=2.5mm]}, thick, color=black!65}
+]
+
+% Row 1: per-recording pipeline
+\node[box1] (raw)    {Raw ECG\\signal};
+\node[box1, right=of raw]    (filt)   {Filtering\\(0.5 Hz highpass\\+ 60 Hz notch)};
+\node[box1, right=of filt]   (peak)   {R-peak detection\\(adaptive threshold)};
+\node[box1, right=of peak]   (hr)     {Instantaneous HR\\(60 / RR)};
+\node[box1, right=of hr]     (interp) {Interpolation\\(4 Hz grid)};
+
+\draw[arr] (raw) -- (filt);
+\draw[arr] (filt) -- (peak);
+\draw[arr] (peak) -- (hr);
+\draw[arr] (hr) -- (interp);
+
+\node[above=0.35cm of $(raw.north)!0.5!(interp.north)$,
+      font=\small\itshape\bfseries, color=blue!55!black]
+  {Extraction and elaboration of ECG signals, repeated for every subject, session, stimulus};
+
+% Row 2: group-level pipeline
+\node[box2, below=2.6cm of raw, xshift=0.3cm]  (align) {Align across subjects\\(common length)};
+\node[box2, right=of align]  (isc)   {ISC-HR\\(Pearson corr.\\+ Fisher-Z average)};
+\node[box2, right=of isc]    (r1)    {R1: Hypothesis test\\(circular-shift\\permutation + FDR)};
+\node[box2, right=of r1]     (r2)    {R2: Attention modulation\\(attentive-referenced\\correlation + paired test)};
+
+\draw[arr] (align) -- (isc);
+\draw[arr] (isc) -- (r1);
+\draw[arr] (r1) -- (r2);
+
+\node[above=0.35cm of $(align.north)!0.5!(r2.north)$,
+      font=\small\itshape\bfseries, color=green!40!black]
+  {Group-level pipeline (across all subjects, per session and stimulus)};
+
+% connector between the two rows
+\draw[arr] (interp.south) |- ++(0,-1.1cm) -| node[pos=0.25, above, font=\scriptsize\itshape]
+  {one interpolated HR series per subject} (align.north);
+
+\end{tikzpicture}
+\caption{Full processing pipeline from raw ECG signal to the statistical tests to replicate R1 and R2.}
+\label{fig:pipeline_general}
+\end{figure}
+
 
 
 \subsection{Signal preprocessing}\label{subsec1}
 
-da HR-Pipeline-Note.pdf + Butterworth-Filter-Note.pdf: filtro, picchi, HR istantanea, interpolazione
+Raw ECG signals are first high-pass filtered to remove baseline drift, then a notch filter is used to suppress power-line interference.
+The first high-pass filter used a 0.5 Hz cutoff, in order to preserve the faster fluctuations corresponding to heartbeats while attenuating baseline drift.
+
+The notch filter targets 60 Hz, which is the frequency of electrical interference from the power supply. 
+Considering the dataset's 128 Hz sampling rate, the Nyquist limit is therefore 64 Hz. This places 60 Hz close to this edge. Thus the effect of the second filter is marginal.\\
+
+R-peaks are detected by using an adaptive amplitude threshold.
+The chosen value is $3\times$ standard deviations of the filtered signal. This is combined with a 0.3s temporal distance between consecutive detections.\\
+
+Instantaneous heart rate was computed as the inverse of successive R-R intervals $\frac{60}{RR}$ (BPM), where RR is the time interval between two consecutive R-peaks. Then it's resampled onto a common 4Hz grid via interpolation to allow comparison across subjects.\\
+
+Subjects whose mean heart rate fell outside a plausible range (40-160 BPM) were automatically excluded from further analysis in order to improve the quality of the results.
+
 
 \subsection{ISC-HR computation}\label{subsec2}
+
+In order to compute ISC-HR, all subjects' interpolated HR series were truncated to their shortest common length and arranged into a matrix of pairwise Pearson correlations.\\
+Each subject's ISC-HR was computed as the FIsher-Z average of their correlation with every other subject in the group, excluding self-correlation. This is followed by the inverse Fisher-Z transform.
+
 
 da Hypothesis-Test-R1-Note.pdf Sezione 1: Fisher-Z, Step 3-5 del paper
 
