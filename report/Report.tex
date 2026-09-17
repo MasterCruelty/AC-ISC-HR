@@ -330,28 +330,108 @@ Two other choices were also made for simplicity:
 
 \section{Results}\label{sec5}
 
-Qui attingi principalmente da Final-Results-R1-R2-Discussion.pdf, che è già scritto quasi in forma di risultati/discussione:
+
+This section reports the results of R1 (Section~\ref{subsec6}) and R2 (Section~\ref{subsec7}) across all ten (session, stimulus) combinations.
+
+
+\subsection{R1 on all combinations of (session, stimulus)}\label{subsec6}
+
+Figure~\ref{fig:pearson_corr} shows an example correlation matrix, computed across all subjects for the attentive condition (session 1) and stimulus 1.\\
+ISC-HR for each subject is derived from this matrix as described in Section~\ref{subsec2}.
 
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{pearson_corr.png}
-    \caption{Pearson correlation matrix. Entry (i, j) is the Pearson correlation between subject i and subject j. The dark diagonal is each subject with itself (r = 1)}
+    \caption{Pearson correlation matrix for session 1 (attentive), stimulus 1. Entry $(i,j)$ is the Pearson correlation between subject $i$ and subject $j$. The dark diagonal is each subject with itself ($r=1$).}
     \label{fig:pearson_corr}
 \end{figure}
 
 
+Table~\ref{tab:r1} summarizes ISC-HR results across all five stimuli, for both attentive and distracted (within-group) conditions. In this specific case, as already anticipated in the previous sections, the distracted condition is correlated within-group, not against the attentive reference.\\\\
 
-\subsection{Input validation}\label{subsec6}
 
-\subsection{R1 on all combinations of (session, stimulus)}\label{subsec7}
 
-\subsection{Significant stimulus}\label{subsec8}
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Stimulus & Condition & Subjects & Mean ISC-HR & Significant (\%) \\
+\midrule
+stim01 & Attentive  & 27 & 0.068 & 48.1 \\
+stim01 & Distracted & 25 & 0.002 & 0.0 \\
+stim02 & Attentive  & 27 & 0.039 & 18.5 \\
+stim02 & Distracted & 27 & -0.002 & 0.0 \\
+stim03 & Attentive  & 28 & 0.018 & 17.9 \\
+stim03 & Distracted & 25 & 0.003 & 0.0 \\
+stim04 & Attentive  & 28 & 0.032 & 25.0 \\
+stim04 & Distracted & 25 & 0.002 & 0.0 \\
+stim05 & Attentive  & 28 & 0.064 & 21.4 \\
+stim05 & Distracted & 26 & 0.008 & 0.0 \\
+\bottomrule
+\end{tabular}
+\caption{ISC-HR results across all ten combinations (within-group method for both conditions).}
+\label{tab:r1}
+\end{table}
 
-\subsection{Stimulus 02 case}\label{subsec9}
+For every stimulus, the attentive condition shows a positive mean ISC-HR with a substantial fraction of subjects individually significant (from 17.9 to 48.1\%), well above the $\sim$5\% expected by chance alone at $\alpha=0.05$. The distracted condition, computed within-group, shows essentially no synchrony for any stimulus.
+
+\subsection{R2: attention modulation}\label{subsec7}
+
+
+Table~\ref{tab:r2} shows, for each stimulus, the mean ISC-HR under both the attentive condition and the attentive-referenced distracted condition, together with the result of the paired comparison between them.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+Stimulus & Attentive & Att. sig.\ (\%) & Distracted (ref.) & Dist.\ sig.\ (\%) & $p$-value \\
+\midrule
+stim01 & 0.068 & 48.1 & 0.025 & 4.0  & 0.0004 \\
+stim02 & 0.039 & 22.2 & 0.020 & 22.2 & 0.2584 \\
+stim03 & 0.018 & 17.9 & 0.008 & 0.0  & 0.0802 \\
+stim04 & 0.032 & 25.0 & 0.010 & 0.0  & 0.0003 \\
+stim05 & 0.064 & 21.4 & 0.026 & 0.0  & 0.0236 \\
+\bottomrule
+\end{tabular}
+\caption{Mean ISC-HR and percentage of individually significant subjects (Section~\ref{subsec3}) for the attentive and attentive-referenced distracted conditions, alongside the paired comparison between them, per stimulus. The Wilcoxon signed-rank test is used, chosen over a paired $t$-test after Shapiro-Wilk rejected normality on the pooled differences at $\alpha=0.05$ ($W=0.979$, $p=0.046$; $W$ close to 1 indicates normality, so this result sits just below the threshold).}
+\label{tab:r2}
+\end{table}
+
+Three of the five stimuli (stim01, stim04, stim05) show a statistically significant reduction in ISC-HR under distraction ($p<0.05$), consistent with R2. The remaining two stimuli do not reach significance, for different reasons discussed below.
+
+
+\subsubsection*{stim02 and stim03: different patterns behind similar $p$-values}
+
+stim02 and stim03 both fail to reach significance ($p=0.258$ and $p=0.080$ respectively), but for different underlying reasons, visible in Table~\ref{tab:r2}'s individual-significance columns. For stim02, 22.2\% of distracted subjects remain individually significant, which is identical to the attentive rate. This is indicating that distraction did not measurably reduce synchrony for this specific stimulus. For stim03, by contrast, 0\% of distracted subjects are individually significant, matching the pattern of stim04 and stim05 (which do reach significance); stim03's weaker result instead reflects its smaller attentive-condition baseline (0.018, the smallest of all five stimuli), which limits how large the attentive-minus-distracted difference can be.
 
 
 \section{Discussion}\label{sec6}
+
+
+\subsection{Comparison with the original study}
+
+Attentive viewing produces significant inter-subject heart-rate synchrony, and this synchrony is reduced under distraction. However, direct numerical comparison with the paper's reported figures should be treated with some caution.
+
+BBBD's data descriptor explicitly attributes Experiment 2's ECG data to Pérez et al., 2021~\cite{perez2021} (Section~\ref{sec3}), confirming the same underlying raw recordings are used here. This project detects R-peaks directly from that raw signal, matching the original paper's automated approach rather than BBBD's subsequent manual correction, which was apparently introduced only when BBBD re-released the data and it is not used here. However, the paper we based the work on, does not specify the exact detection parameters (amplitude threshold, refractory distance) used in their original \texttt{findpeaks} call.\\
+Thus peak agreement with the original study is therefore not guaranteed, even on the same raw signal, since this project's own parameters (Section~\ref{subsec5}) are an independent choice.\\
+
+
+
+$--------DA RIVEDERE-------$
+
+The original paper does not report an individual-subject significance count for Experiment 2 (the design replicated here); it reports only an aggregate attention $\times$ video ANOVA ($F[1,104]=70.64$, $p=6.93\times10^{-9}$) and states that its own per-video follow-up paired $t$-test reaches significance for all five videos individually. As a rough plausibility check only, Experiment 1 --- a different, audio-only narrative design with no distraction condition --- reports 17 of 27 subjects (63\%) individually significant, broadly comparable in order of magnitude to this project's attentive-condition rates (17.9--48.1\%, Table~\ref{tab:r1}), though not a direct like-for-like comparison. This project's R2 paired comparison reaches significance for three of five stimuli rather than five of five. These differences are plausibly attributable to the peak-detection parameter differences (Section~\ref{sec3}), the self-exclusion choice for the reference group (Section~\ref{subsec4}), the QC criterion (Section~\ref{subsec5}), and ordinary sample variability, rather than indicating a failure to replicate the underlying effect.
+
+
+
+Additionally, BBBD (2025--2026) postdates~\cite{perez2021} (2021) by several years. Although the two publications share authors and BBBD's data descriptor explicitly ties Experiment 2's ECG to the original study, this timing difference is a further reason to treat numerical comparisons as checks of plausibility and order of magnitude rather than exact validation.
+
+
+
+
+
+
+
 
 Confronto con le cifre del paper (con le cautele che abbiamo già scritto), limiti dichiarati (niente ANOVA completa, sensibilità all'interpolazione non testata, scelte QC/esclusione non specificate dal paper), interpretazione del pattern generale.
 
