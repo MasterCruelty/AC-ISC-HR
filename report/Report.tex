@@ -115,7 +115,7 @@
 
 \abstract{ This project focuses on analyzing heart-rate synchrony across individuals to verify if it's modulated by attentional state while watching educational videos.
 
-The goal is therefore to replicate a couple of results from Pérez et al. (2021)~\cite{perez2021} using data from the the Brain, Body and Behavior Dataset (BBBD)~\cite{bbbd}, which provides a standardized and publicly accessible version of the recordings used in the original Experiment 2.
+The goal is therefore to replicate a couple of results from Pérez et al. (2021)~\cite{perez2021} using data from the Brain, Body and Behavior Dataset (BBBD)~\cite{bbbd}, which provides a standardized and publicly accessible version of the recordings used in the original Experiment 2.
 
 To achieve this, heart-rate fluctuations were extracted from raw ECG recordings and compared across subjects using ISC-HR (inter-subject correlation of heart-rate).
 
@@ -335,7 +335,7 @@ Two other choices were also made for simplicity:
 
 \begin{itemize}
 \item Regarding R1, ISC-HR in the distracted condition is computed within-group (distracted subjects correlated against each other) rather than using the attentive-referenced method. The latter is used specifically to replicate R2, where the attentive-distracted comparison requires it.
-\item This project does not use the original paper's ANOVA method, which tests both factors (attention $\times$ stimulus) and their interaction together in a single model. R2 instead uses five separate paired tests, one per stimulus[~\ref{subsec4}].
+\item This project does not use the original paper's ANOVA method, which tests both factors (attention $\times$ stimulus) and their interaction together in a single model. R2 instead uses five separate paired tests, one per stimulus[Section ~\ref{subsec4}].
 \end{itemize}
 
 
@@ -412,7 +412,7 @@ stim05 & 0.064 & 21.4 & 0.026 & 0.0  & 0.0236 \\
 Three of the five stimuli (stim01, stim04, stim05) show a statistically significant reduction in ISC-HR under distraction ($p<0.05$), consistent with R2. The remaining two stimuli do not reach significance, for different reasons discussed below.
 
 
-\subsubsection{stim02 and stim03: different patterns behind similar $p$-values}\label{subsec7}
+\subsubsection{stim02 and stim03: different patterns behind similar $p$-values}\label{subsec8}
 
 Stim02 and stim03 both fail to reach significance ($p=0.258$ and $p=0.080$ respectively), but for different underlying reasons, visible in Table~\ref{tab:r2}'s individual-significance columns.\\
 For stim02, the attentive and distracted conditions did not differ significantly, although the absence of a significant effect does not by itself demonstrate preserved attentional engagement.\\
@@ -422,15 +422,15 @@ One possible explanation of stim03's weaker result is the lower attentive baseli
 \section{Discussion}\label{sec6}
 
 
-\subsection{Comparison with the original study}
+\subsection{Comparison with the original study}\label{subsec9}
 
 Attentive viewing produces significant inter-subject heart-rate synchrony which is reduced under distraction. However, direct numerical comparison with the paper's reported figures should be treated with some caution.
 BBBD's data descriptor explicitly attributes Experiment 2's ECG data to Pérez et al., 2021~\cite{perez2021} (Section~\ref{sec3}), confirming the same underlying raw recordings used here.\\ However, the paper we based the work on, does not specify the exact peak detection parameters (amplitude threshold, refractory distance) used.\\
-Thus results values with the original study is therefore not guaranteed, even on the same raw signal, since this project's own parameters (Section~\ref{subsec5}) are an independent choice.\\
+Exact numerical agreement with the original study is therefore not guaranteed, even on the same raw signal, since this project's peak-detection parameters (Section~\ref{subsec5}) are an independent choice.\\
 The original paper reports that the effect of attention is significant for each video individually (follow-up pairwise $t$-test, all $p<0.05$), and that ISC-HR numerically drops under distraction for 26 of 27 subjects when averaged across videos.\\
 In this project instead the paired comparison reached significance for 3 of 5 stimuli.\\
-Regarding the significance of the ISC-HR synchrony across subjects, we relate to the experiment 1 of the paper, which is an audio only narrative without distraction session. The paper reports 17 of 27 subjects (63\%) having statistically sgnificant HR correlation, which is comparable with what this project found in attentive condition (from 17.9\% to 48.1\% depending on stimulus, Table~\ref{tab:r1} ). However, it is clearly not a direct like for like comparison.\\
-All of these differences are plausibly attributable to the peak-detection parameter approches(Section~\ref{sec3}) and other criteria already mentioned in previous sections.\\
+Regarding the significance of the ISC-HR synchrony across subjects, we relate to the experiment 1 of the paper, which is an audio only narrative without distraction session. The paper reports 17 of 27 subjects (63\%) having statistically significant HR correlation, which is comparable with what this project found in attentive condition (from 17.9\% to 48.1\% depending on stimulus, Table~\ref{tab:r1} ). However, it is clearly not a direct like for like comparison.\\
+All of these differences are plausibly attributable to the peak-detection parameter approaches (Section~\ref{sec3}) and other criteria already mentioned in previous sections.\\
 In addition, the BBBD data descriptor was published several years after the original paper, although the Experiment 2 recordings themselves originate from the original study.\\
 The timing difference is a further reason to treat numerical comparison as plausibility check rather than exact validation.
 
@@ -448,7 +448,7 @@ Positive ISC-HR is observed in the attentive condition for all five stimuli, whe
 Regarding the exceptions found, stim02 suggests that, for some content, engagement may persist even under a distraction task.
 The pattern observed here is consistent with attention playing a role in heart-rate synchronization.\\
 Overall, this project replicates the qualitative pattern reported by Pérez et al., 2021~\cite{perez2021}.\\
-Heart rate synchrony is measurable, statistically significant and reduced under distraction. The magnitude of the effect differs somewhat from the original figures, for reasons discussed above, but the direction and general strength of both R1 and R2 are consistent with the original study.
+Heart rate synchrony is measurable, statistically significant and reduced under distraction. The magnitude of the effect differs somewhat from the original figures, as already discussed, plausibly due to differing peak-detection parameters, the self-exclusion and QC choices, and ordinary sample variability (Section ~\ref{subsec8}). However the direction and general strength of both R1 and R2 are consistent with the original study.
 
 \begin{thebibliography}{99}
 
