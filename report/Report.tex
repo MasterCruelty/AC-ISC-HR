@@ -119,7 +119,7 @@ The goal is therefore to replicate a couple of results from Pérez et al. (2021)
 
 To achieve this, heart-rate fluctuations were extracted from raw ECG recordings and compared across subjects using ISC-HR (inter-subject correlation of heart-rate).
 
-A hypothesis test with a FDR correction is used to establish statistical significance of the obtained results. ISC-HR is then compared between attentive and distracted conditions using paired statistical tests separately for each of the five stimuli.
+A hypothesis test with a FDR correction is used to establish statistical significance of the obtained results. ISC-HR is then compared between attentive and distracted conditions using paired statistical tests for each of the five stimuli.
 
 Hypothesis test and descriptive statistics are employed to analyze synchrony patterns and to detect the effect of attention across stimuli.
 
@@ -142,10 +142,10 @@ This phenomenon is known as inter-subject correlation of heart-rate (ISC-HR).\\
 
 Pérez et al. (2021)~\cite{perez2021} proposed that these heart-rate fluctuations are modulated by conscious, attentive processing of the stimulus. \\
 
-This project aims to replicate two of the main results reported by the analyzed paper.
+This project aims to replicate two of the main results reported by the analyzed paper:
 \begin{itemize}
 \item ISC-HR is statistically significant across subjects exposed to the same stimulus (R1).
-\item Synchrony is modulated by attentional state, being higher when subjects are attentive than when they are distracted (R2).
+\item Synchrony is modulated by attentional state, being higher when subjects are attentive rather than when they are distracted (R2).
 \end{itemize}
 
 This work uses data from the Brain, Body and Behavior Dataset (BBBD)~\cite{bbbd}, which is a more recent dataset that includes similar experiments to the original study.
@@ -154,14 +154,9 @@ This work uses data from the Brain, Body and Behavior Dataset (BBBD)~\cite{bbbd}
 
 The original paper~\cite{perez2021} computes ISC-HR by correlating each subject's instantaneous heart-rate fluctuations against the rest of the group, averaging the resulting pairwise correlations in Fisher-Z space, and testing significance via a circular-shift permutation procedure with False Discovery Rate (FDR) correction.
 The study reports three main findings across four experiments.\\
-
-
 The first one (R1) shows that heart-rate fluctuations synchronize across subjects listening to the same auditory narrative, with 17 of 27 subjects having statistically significant ISC-HR.\\
-
-The second result (R2) shows this synchrony is systematically higher when subjects attend to a stimulus than when they are distracted.\\
-
+The second result (R2) shows this synchrony is systematically higher when subjects attend to a stimulus rather than when they are distracted.\\
 The third result (R3) shows that ISC-HR predicts subsequent memory recall performance for the narrative content, suggesting that the measure reflects conscious engagement rather than an autonomic response to sensory input.\\
-
 The fourth experiment applies ISC-HR to patients with disorders of consciousness, showing reduced synchrony relative to healthy controls and framing ISC-HR as a potential prognostic marker in a clinical setting.
 
 As already anticipated, this project replicates only R1 and R2 using an experiment equivalent to the original study's experiment 2.\\
@@ -169,17 +164,14 @@ As already anticipated, this project replicates only R1 and R2 using an experime
 \section{Dataset}\label{sec3}
 
 This project uses Experiment 2 of the BBBD dataset~\cite{bbbd}, which contains recordings of ECG, EEG, eye-tracking, and respiration during educational video viewing.\\
-
 In experiment 2, 31 subjects watch five educational videos, each one viewed twice by the same subject: attentively the first time, distracted by performing a secondary task (silently counting backward) the second time. \\
 ECG recordings were sampled at 128 Hz, with stimulus duration ranging from approximately 2.5 to 6.5 minutes depending on the video.
 
 BBBD's data descriptor~\cite{bbbd} explicitly states that the ECG data provided for this experiment are not newly collected, but are the same recordings originally published in Pérez et al., 2021~\cite{perez2021}.\\
-
 ECG preprocessing documentation~\cite{bbbd} states that R-wave peaks were detected automatically and then manually corrected.
 This project instead detects R-peaks directly from the raw ECG signal using an automated procedure, without using BBBD's provided peak timestamps and without manual review.\\
 This choice was made in order to reproduce and understand the original study's methodology.\\
-
-Not every subject has a usable recording for every (subject, session, stimulus) combination. Missing files are skipped automatically, so the number of subjects analyzed varies slightly across stimuli and conditions.
+Not every subject has a usable recording for every combination (subject, session, stimulus). Missing files are skipped automatically, so the number of subjects analyzed varies slightly across stimuli and conditions.
 
 
 \section{Methodology}\label{sec4}
@@ -244,16 +236,11 @@ Most of the process follows the methodology described in the original paper.
 
 Raw ECG signals are first high-pass filtered to remove baseline drift, then a notch filter is used to suppress power-line interference.
 The first high-pass filter used a 0.5 Hz cutoff, in order to preserve the faster fluctuations corresponding to heartbeats while attenuating baseline drift.
-
 The notch filter targets 60 Hz, which is the frequency of electrical interference from the power supply. Its contribution is expected to be limited because the interference frequency is very close to Nyquist limit.\\
-
 R-peaks are detected by using an adaptive amplitude threshold.
 The chosen value is $3\times$ standard deviations of the filtered signal. This is combined with a 0.3s temporal distance between consecutive detections.\\
-
 Instantaneous heart rate was computed as the inverse of consecutive R-R intervals $\frac{60}{RR}$ (BPM), where RR is the time interval between two consecutive R-peaks. Then it's resampled onto a common 4Hz grid via interpolation to allow comparison across subjects. \\
-
 This last step is made because instantaneous HR series have one value per heartbeat and themselves do not occur at fixed intervals. The requirement for the next step which is computing a Pearson correlation between the HR signals of different subjects requires vectors of equal length, aligned on the same time points.\\
-
 Subjects whose mean heart rate fell outside a plausible range (40-160 BPM) were automatically excluded from further analysis in order to improve the quality of the results.
 
 \begin{figure}[H]
@@ -278,7 +265,7 @@ Each subject's ISC-HR is computed as follows:
 \begin{equation}
 \text{ISC-HR}_i = \tanh\left(\frac{1}{N-1}\sum_{j \neq i} \text{arctanh}(r_{ij})\right)
 \end{equation}
-where $r_{ij}$ is the Pearson correlation between subject $i$ and subject $j$, and self-correlation ($j=i$) is excluded. Correlations are first transformed with the Fisher-Z transform ($\text{arctanh}$) before averaging. The inverse transform ($\tanh$) then maps the average back onto the original correlation scale.
+where $r_{ij}$ is the Pearson correlation between subject $i$ and subject $j$ and self-correlation ($j=i$) is excluded. Correlations are first transformed with the Fisher-Z transform ($\text{arctanh}$) before averaging. The inverse transform ($\tanh$) then maps the average back onto the original correlation scale.
 
 
 
@@ -295,7 +282,7 @@ In practice, this fraction is computed as:
 \begin{equation}
 p = \frac{1 + \text{count}}{B + 1}
 \end{equation}
-where $\text{count}$ is the number of null values at least as large as the observed ISC-HR. The reason: if the observed value exceeds all $B$ permutations, the plain proportion returns exactly $p=0$, incorrectly claiming chance could never produce such a result. The $+1$ correction bounds the smallest reportable p-value at $\frac{1}{B+1}$ instead.\\
+where $\text{count}$ is the number of null values at least as large as the observed ISC-HR. If the observed value exceeds all $B$ permutations, the plain proportion returns exactly $p=0$, which incorrectly implies that chance could never produce such a result. The $+1$ correction bounds the smallest reportable p-value at $\frac{1}{B+1}$ instead.\\
 
 Benjamini-Hochberg FDR correction is then applied across all subjects within each combination.\\
 
@@ -336,7 +323,7 @@ A significant result ($p<0.05$) for a given stimulus indicates that attention mo
 
 \subsection{Implementation choices}\label{subsec5}
 
-Several parameters were not specified in the original paper and required to make implementation choices.\\
+Several parameters were not specified in the original paper and required to make implementation choices:\\
 
 \begin{itemize}
 \item The amplitude threshold and refractory distance for R-peak detection.
@@ -358,9 +345,9 @@ Two other choices were also made for simplicity:
 This section reports the results of R1 (Section~\ref{subsec6}) and R2 (Section~\ref{subsec7}) across all ten (session, stimulus) combinations.
 
 
-\subsection{R1 on all combinations of (session, stimulus)}\label{subsec6}
+\subsection{R1 on all combinations of session and stimulus}\label{subsec6}
 
-Figure~\ref{fig:pearson_corr} shows an example correlation matrix, computed across all subjects for the attentive condition (session 1) and stimulus 1.\\
+Figure~\ref{fig:pearson_corr} shows an example of correlation matrix, computed across all subjects for the attentive condition (session 1) and stimulus 1.\\
 ISC-HR for each subject is derived from this matrix as described in Section~\ref{subsec2}.
 
 
@@ -398,7 +385,7 @@ stim05 & Distracted & 26 & 0.008 & 0.0 \\
 \label{tab:r1}
 \end{table}
 
-For every stimulus, the attentive condition shows a positive mean ISC-HR with a substantial fraction of subjects individually significant (from 17.9 to 48.1\%), well above the $\sim$5\% expected by chance alone at $\alpha=0.05$. The distracted condition, computed within-group, shows essentially no synchrony for any stimulus.
+For every stimulus, the attentive condition shows a positive mean ISC-HR with a substantial fraction of individually significant subjects (from 17.9 to 48.1\%), well above the $\sim$5\% expected by chance alone at $\alpha=0.05$. The distracted condition, computed within-group, shows essentially no synchrony for any stimulus.
 
 \subsection{R2: attention modulation}\label{subsec7}
 
@@ -425,12 +412,11 @@ stim05 & 0.064 & 21.4 & 0.026 & 0.0  & 0.0236 \\
 Three of the five stimuli (stim01, stim04, stim05) show a statistically significant reduction in ISC-HR under distraction ($p<0.05$), consistent with R2. The remaining two stimuli do not reach significance, for different reasons discussed below.
 
 
-\subsubsection*{stim02 and stim03: different patterns behind similar $p$-values}
+\subsubsection{stim02 and stim03: different patterns behind similar $p$-values}\label{subsec7}
 
-stim02 and stim03 both fail to reach significance ($p=0.258$ and $p=0.080$ respectively), but for different underlying reasons, visible in Table~\ref{tab:r2}'s individual-significance columns.
-
+Stim02 and stim03 both fail to reach significance ($p=0.258$ and $p=0.080$ respectively), but for different underlying reasons, visible in Table~\ref{tab:r2}'s individual-significance columns.\\
 For stim02, the attentive and distracted conditions did not differ significantly, although the absence of a significant effect does not by itself demonstrate preserved attentional engagement.\\
-One possible explanation of stim03's weaker result is the lower attentive baseline (0.018, the smallest of all five stimuli), which limits how large the attentive-minus-distracted difference can be.
+One possible explanation of stim03's weaker result is the lower attentive baseline (0.018, the smallest of all five stimuli), which limits how large the attentive/distracted difference can be.
 
 
 \section{Discussion}\label{sec6}
@@ -438,16 +424,12 @@ One possible explanation of stim03's weaker result is the lower attentive baseli
 
 \subsection{Comparison with the original study}
 
-Attentive viewing produces significant inter-subject heart-rate synchrony, and this synchrony is reduced under distraction. However, direct numerical comparison with the paper's reported figures should be treated with some caution.
-
-BBBD's data descriptor explicitly attributes Experiment 2's ECG data to Pérez et al., 2021~\cite{perez2021} (Section~\ref{sec3}), confirming the same underlying raw recordings are used here.\\ However, the paper we based the work on, does not specify the exact peak detection parameters (amplitude threshold, refractory distance) used.\\
+Attentive viewing produces significant inter-subject heart-rate synchrony which is reduced under distraction. However, direct numerical comparison with the paper's reported figures should be treated with some caution.
+BBBD's data descriptor explicitly attributes Experiment 2's ECG data to Pérez et al., 2021~\cite{perez2021} (Section~\ref{sec3}), confirming the same underlying raw recordings used here.\\ However, the paper we based the work on, does not specify the exact peak detection parameters (amplitude threshold, refractory distance) used.\\
 Thus results values with the original study is therefore not guaranteed, even on the same raw signal, since this project's own parameters (Section~\ref{subsec5}) are an independent choice.\\
-
 The original paper reports that the effect of attention is significant for each video individually (follow-up pairwise $t$-test, all $p<0.05$), and that ISC-HR numerically drops under distraction for 26 of 27 subjects when averaged across videos.\\
 In this project instead the paired comparison reached significance for 3 of 5 stimuli.\\
-
-Regarding the significance of the ISC-HR synchrony across subjects, we relate to the experiment 1 of the paper, which is a different audio only narrative without distraction session. The paper reports 17 of 27 subjects individually significant (63\%), which is comparable with what this project found in attentive condition (from 17.9\% to 48.1\% depending on stimulus, Table~\ref{tab:r1} ). However, it is clearly not a direct like for like comparison.\\
-
+Regarding the significance of the ISC-HR synchrony across subjects, we relate to the experiment 1 of the paper, which is an audio only narrative without distraction session. The paper reports 17 of 27 subjects (63\%) having statistically sgnificant HR correlation, which is comparable with what this project found in attentive condition (from 17.9\% to 48.1\% depending on stimulus, Table~\ref{tab:r1} ). However, it is clearly not a direct like for like comparison.\\
 All of these differences are plausibly attributable to the peak-detection parameter approches(Section~\ref{sec3}) and other criteria already mentioned in previous sections.\\
 In addition, the BBBD data descriptor was published several years after the original paper, although the Experiment 2 recordings themselves originate from the original study.\\
 The timing difference is a further reason to treat numerical comparison as plausibility check rather than exact validation.
@@ -455,23 +437,18 @@ The timing difference is a further reason to treat numerical comparison as plaus
 
 \subsection{A methodological note on Tables~\ref{tab:r1} and~\ref{tab:r2}}
 
-stim02's attentive-condition significance rate differs slightly between Table~\ref{tab:r1} (18.5\%) and Table~\ref{tab:r2} (22.2\%), despite both being computed from the same standard within-group correlation. This is because the two tables align series against different companion groups: Table~\ref{tab:r1} aligns attentive subjects alone, while Table~\ref{tab:r2} aligns them together with the distracted group, as required for the cross-condition correlation used in R2. A shorter common length in one case versus the other can shift a single borderline subject's significance verdict. This affects only stim02, by one subject, and does not change any conclusion drawn from either table.
+Stim02's attentive-condition significance rate differs slightly between Table~\ref{tab:r1} (18.5\%) and Table~\ref{tab:r2} (22.2\%), despite both being computed from the same standard within-group correlation. This is because the two tables align series against different companion groups: Table~\ref{tab:r1} aligns attentive subjects alone, while Table~\ref{tab:r2} aligns them together with the distracted group, as required for the cross-condition correlation used in R2. A shorter common length in one case versus the other can shift a single borderline subject's significance verdict. This affects only stim02, by one subject, and does not change any conclusion drawn from either table.
 
 
 
 \section{Conclusion}\label{sec7}
 
-
-The results are consistent with the hypothesis that heart-rate synchrony is modulated by attentional engagement.
-
-
 At the end of this project, we can assume that the results are consistent with the hypothesis that heart-rate synchrony is modulated by attentional engagement.\\
 Positive ISC-HR is observed in the attentive condition for all five stimuli, whereas the distracted within-group condition shows values close to zero. This gap is statistically confirmed for the majority of the stimuli in R2.\\
-Regarding the exceptions found, stim02 suggests that, for some content, engagement may persist even udner a distraction task.
-The pattern observed here is consistent with attetion playing a role in heart-rate synchronization.\\
-
+Regarding the exceptions found, stim02 suggests that, for some content, engagement may persist even under a distraction task.
+The pattern observed here is consistent with attention playing a role in heart-rate synchronization.\\
 Overall, this project replicates the qualitative pattern reported by Pérez et al., 2021~\cite{perez2021}.\\
-Heart rate synchrony is measurable, statistically significant, and reduced under distraction. The magnitude of the effect differs somewhat from the original figures, for reasons discussed above, but the direction and general strength of both R1 and R2 are consistent with the original study.
+Heart rate synchrony is measurable, statistically significant and reduced under distraction. The magnitude of the effect differs somewhat from the original figures, for reasons discussed above, but the direction and general strength of both R1 and R2 are consistent with the original study.
 
 \begin{thebibliography}{99}
 
