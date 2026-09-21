@@ -16,7 +16,7 @@ Set STAGES_TO_RUN below to choose which one to run.
 from single_recording import process_single_recording
 from isc_analysis import run_isc_hr_pipeline, run_pipeline_all_combinations, summary_table
 from hypothesis_test import run_hypothesis_test
-from attention_comparison import run_attention_modulation
+from attention_comparison import run_attention_modulation, run_anova_r2
 
 EXPERIMENT_ROOT = 'data'   # adjust to the real Experiment 2 root
 
@@ -79,6 +79,7 @@ def run_stage4_attention_modulation(n_perm=10000, alpha=0.05, seed=42):
     """
     result = run_attention_modulation(EXPERIMENT_ROOT, n_perm=n_perm, alpha=alpha, seed=seed, verbose=False)
 
+    #HYPOTHESIS TEST
     print("\n=== Per-subject significance (attentive-referenced method) ===")
     for r in result['per_stim']:
         att_r = r['attentive_result']
@@ -91,13 +92,20 @@ def run_stage4_attention_modulation(n_perm=10000, alpha=0.05, seed=42):
             f"{dis_r['n_significant']}/{dis_r['n_subjects']} significant "
             f"({100*dis_r['n_significant']/dis_r['n_subjects']:.1f}%)")
 
+    #PAIRED COMPARISON TESTS
     print("\n=== Attention modulation of ISC-HR ===")
     print(f"Shapiro-Wilk normality check: "
           f"statistic={result['shapiro_stat']:.4f}, p={result['shapiro_p']:.4f}")
     print(f"Test used for all 5 stimuli: {result['test_used']}\n")
 
+    #ANOVA
     for t in result['per_stim_tests']:
         print(f"  {t['stim']}: n={t['n']}, statistic={t['statistic']:.4f}, p={t['p_value']:.4f}")
+        anova = run_anova_r2(result['per_stim'], verbose=True)
+    print(f"\n=== R2: two-way repeated-measures ANOVA (attention x stimulus) ===")
+    print(f"{anova['n_subjects']} subjects with a complete design "
+          f"({len(anova['dropped'])} dropped).\n")
+    print(anova['table'])
 
     return result
 
