@@ -15,6 +15,8 @@ that result.
 
 import numpy as np
 from scipy.stats import shapiro, ttest_rel, wilcoxon
+from statsmodels.stats.anova import AnovaRM
+import pandas as pd
 
 from isc_analysis import (collect_hr_series, filter_by_hr_range, align_series,
                           correlation_matrix, isc_hr, STIMULI,
@@ -223,4 +225,65 @@ def run_attention_modulation(experiment_root, stimuli=None, hr_low=40.0, hr_high
         'shapiro_p': float(shapiro_p),
         'test_used': test_used,
         'per_stim_tests': per_stim_tests,
+    }
+
+
+
+
+def build_long_format(per_stim):
+    """
+    This function reshapes the run_attention_modulation's results 
+    in order to use AnovaRM which need that every subject must have a value for
+    every stimulus x condition combination.
+
+    Returns
+    -------
+    df : pandas.DataFrame, columns: subject, stimulus, condition, isc_hr
+        only subjects present in all combinations are kept.
+    dropped : list[str]
+        subjects excluded because their design was incomplete.
+    """    
+
+    rows = []
+    for r in per_stim:
+        for sid, val in zip(r['attentive_ids'], r['attentive_isc']):
+            rows.append({'subject': sid, 'stimulus': r['stim'], 'condition': 'attentive', 'isc_hr': val})
+        for sid, val in zip(r['distracted_ids'], r['distracted_isc']):
+            rows.append({'subject': sid, 'stimulus': r['stim'], 'condition': 'distracted', 'isc_hr': val})
+
+    df = pd.DataFrame(rows)
+
+    n_combinations = df[['stimulus', 'condition']].drop_duplicates().shape[0]
+    counts = df.groupby('subject').size()
+    complete_subjects = counts[counts == n_combinations].index
+    dropped = sorted(set(df['subject']) - set(complete_subjects))
+
+    df_balanced = df[df['subject'].isin(complete_subjects)].reset_index(drop=True)
+    return df_balanced, dropped
+
+
+def run_anova_r2(per_stim, verbose=False):
+    """
+    This function run two-way repeated-measures ANOVA (attention x stimulus),
+    reporting fixed effects for attention and video.
+
+    Returns
+    -------
+    dict with keys:
+        'table'      : the AnovaRM result table
+        'dropped'    : list[str] --> subjects dropped for an incomplete design
+        'n_subjects' : int --> subjects retained
+    """
+
+    df, dropped = build_long_format(per_stim)
+    if verbose and dropped:
+        print(f"  ANOVA: {len(dropped)} subject(s) dropped for incomplete design: {dropped}")
+
+    result = AnovaRM(df, depvar='isc_hr', subject='subject',
+                      within=['condition', 'stimulus']).fit()
+
+    return {
+        'table': result.anova_table,
+        'dropped': dropped,
+        'n_subjects': df['subject'].nunique(),
     }
