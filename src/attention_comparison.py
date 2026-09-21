@@ -264,7 +264,7 @@ def build_long_format(per_stim):
 
 def run_anova_r2(per_stim, verbose=False):
     """
-    This function run two-way repeated-measures ANOVA (attention x stimulus),
+    This function run ANOVA (attention x stimulus),
     reporting fixed effects for attention and video.
 
     Returns
