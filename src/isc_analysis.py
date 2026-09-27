@@ -174,7 +174,7 @@ def run_isc_hr_pipeline(experiment_root, session, stim, hr_low=40.0, hr_high=160
     corr = correlation_matrix(aligned)
     isc = isc_hr(corr)
 
-    result = run_hypothesis_test(aligned, isc, n_perm=n_perm, alpha=alpha, seed=seed)
+    result = run_hypothesis_test(aligned, isc, n_perm=n_perm, alpha=alpha, seed=seed,show_sub=False,ids=ids)
 
     return {
         'session': session,

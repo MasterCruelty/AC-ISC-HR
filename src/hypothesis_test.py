@@ -231,7 +231,7 @@ def benjamini_hochberg(p_values, alpha=0.05):
     return significant
 
 
-def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=None, verbose=False,others_list=None):
+def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=None, verbose=False,others_list=None,show_sub=False,ids=None):
     """
     This function run the full hypothesis test (permutation test + FDR correction).
     
@@ -249,6 +249,9 @@ def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=No
     p_values = permutation_test(aligned, isc_observed, n_perm=n_perm,
                                  seed=seed, verbose=verbose, others_list=others_list)
     significant = benjamini_hochberg(p_values, alpha=alpha)
+    if show_sub:
+        sig_ids = sorted(s for s, sig in zip(ids, significant) if sig)
+        print(f"  significativi: {sig_ids}")
 
     return {
         'p_values': p_values,
@@ -256,3 +259,4 @@ def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=No
         'n_significant': int(significant.sum()),
         'n_subjects': len(isc_observed),
     }
+
