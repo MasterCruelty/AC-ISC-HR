@@ -1,5 +1,5 @@
 """
-loading.py — Reading raw ECG recordings and their BIDS metadata.
+loading.py --> Reading raw ECG recordings and their BIDS metadata.
 
 """
 import json
@@ -10,12 +10,12 @@ import pandas as pd
 
 def load_ecg(tsv_path, json_path):
     """
-    Load a single raw ECG recording (mV) plus its metadata.
+    Load a single raw ECG recording (mV) and its metadata.
 
     Parameters
     ----------
     tsv_path : str
-        Path to the .tsv.gz file (single column 'rawECG', no header).
+        Path to the .tsv.gz file (single column 'rawECG').
     json_path : str
         Path to the matching .json  (sampling frequency, condition).
 
@@ -39,8 +39,7 @@ def load_ecg(tsv_path, json_path):
 def list_subjects(experiment_root):
     """
     Discover subject IDs actually present on dataset.
-
-    Subject numbering in BBBD is not contiguous (for example sub-04 may be missing),
+    Subject numbering in BBBD is not contiguous (for example sub-04 may be missing).
     
     Returns
     -------
@@ -54,9 +53,23 @@ def ecg_paths(experiment_root, subject, session, stim):
     """
     Build the (tsv, json) path pair for a given subject/session/stimulus,
     following the BBBD BIDS naming convention.
+    
+    Parameters
+    ----------
+    experiment_root : str
+        Path to the Experiment root folder (the one containing the 'sub-XX' folders).
+    subject : str
+        Subject identifier, for example 'sub-01'.
+    session : str
+        Session identifier, for example 'ses-01' (Attentive) or 'ses-02' (Distracted)
+    stim    : str
+        Stimulus identifier, for example 'stim01'
 
-    session : str, for example 'ses-01' (Attentive) or 'ses-02' (Distracted)
-    stim    : str, for example 'stim01'
+    Returns
+    -------
+    tuple of (str, str)
+        Paths to the ECG data file (.tsv.gz) and to its metadata file (.json).
+        The paths are only built and the function does not check that the files exist.
     """
     base = os.path.join(
         experiment_root, subject, session, 'beh',
