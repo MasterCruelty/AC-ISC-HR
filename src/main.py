@@ -103,7 +103,7 @@ def run_stage4_attention_modulation(n_perm=10000, alpha=0.05, seed=42):
     #ANOVA
     for t in result['per_stim_tests']:
         print(f"  {t['stim']}: n={t['n']}, statistic={t['statistic']:.4f}, p={t['p_value']:.4f}")
-        anova = run_anova_r2(result['per_stim'], verbose=True)
+    anova = run_anova_r2(result['per_stim'], verbose=True)
     print(f"\n=== R2: two-way repeated-measures ANOVA (attention x stimulus) ===")
     print(f"{anova['n_subjects']} subjects with a complete design "
           f"({len(anova['dropped'])} dropped).\n")
