@@ -1,5 +1,5 @@
 """
-significance.py — hypothesis test of ISC-HR via circular-shift permutation.
+hypothesis_test.py --> hypothesis test of ISC-HR via circular-shift permutation.
 
 
 For each subject, its HR series is circularly shifted by a random amount,
@@ -35,13 +35,13 @@ def zscore(x):
     Parameters
     ----------
     x : np.ndarray
-        Array to standardize. Can be one dimensional (a single series) or 
-        two dimenstional (several rows, for example many shifted versions of a series, or several subjects' series stacked together). 
+        Array to standardize. Can be one dimensional (a single series) or two dimensional.
         If two dimensional, each row is standardized independently of the others.
 
     Returns
     -------
-    np.ndarray, same shape as x
+    np.ndarray
+        same shape as x
         The standardized array: every row has mean 0 and standard deviation 1.
     """
     mean = x.mean(axis=-1, keepdims=True)
@@ -60,14 +60,12 @@ def fisher_average(corrs, axis=-1):
     rather than on a single correlation matrix.
  
     The parameter corrs must not include self-correlation (r=1): 
-    arctanh(1) is infinite, and a subject's correlation with itself carries no information anyway.
+    arctanh(1) is infinite and a subject's correlation with itself carries no information anyway.
 
     Parameters
     ----------
     corrs : np.ndarray
-        Correlation values to average. Must not include self-correlation
-        (r=1): arctanh(1) is infinite, and a subject's correlation with
-        itself carries no information.
+        Correlation values to average. Must not include self-correlation (r=1).
     axis : int
         Which axis to average over, in Fisher-Z space, before converting
         back. Default is the last axis -1.
@@ -75,8 +73,7 @@ def fisher_average(corrs, axis=-1):
     Returns
     -------
     np.ndarray or float
-        The averaged correlation(s), back on the original r scale (same
-        shape as corrs, with `axis` removed).
+        The averaged correlation(s), back on the original r scale.
     """
     z = np.arctanh(corrs)
     return np.tanh(np.mean(z, axis=axis))
@@ -104,13 +101,14 @@ def null_distribution_for_subject(subject_series, others, n_perm=10000, rng=None
     ----------
     subject_series : int
         The one subject's own HR series being tested.
-    others: np.ndarray, shape (n_reference, n_samples)
+    others: np.ndarray
+        shape (n_reference, n_samples)
         The reference group to correlate the shifted versions against. 
         For the standard within-group case this is "the rest of the same group".
         For the attentive-referenced case this is the fixed attentive group instead.
 
     n_perm : int
-        Number of circular-shift permutations (10,000 in this case).
+        Number of circular-shift permutations (10.000 in this case).
     rng : np.random.Generator or None
         The random number generator used to draw the shift amounts.        
 
@@ -130,7 +128,7 @@ def null_distribution_for_subject(subject_series, others, n_perm=10000, rng=None
     idx = (np.arange(n_samples)[None, :] - shifts[:, None]) % n_samples
     shifted = subject_series[idx]
     
-    # Pearson correlation of every shifted version against every other subject,
+    # Pearson correlation of every shifted version against every other subject
     # via standardized dot product: r = (z_shifted . z_other) / n_samples
     z_shifted = zscore(shifted)                        # (n_perm, n_samples)
     z_others = zscore(others)                          # (n_subjects-1, n_samples)
@@ -142,19 +140,21 @@ def null_distribution_for_subject(subject_series, others, n_perm=10000, rng=None
 def permutation_test(aligned, isc_observed, n_perm=10000, seed=None, verbose=False,others_list=None):
     """
     This function run the circular shift premutation test for every subject and return one p-value per subject.
-    For each subject, it builds a null distribution of ISC-HR values and computes a one-tailed p-value.
+    For each subject, it builds a null distribution of ISC-HR values and computes a p-value.
     
     A small p-value means it would be rare, under pure chance, to see synchrony this strong. 
     So the real result is unlikely to be random.
  
     Parameters
     ----------
-    aligned : np.ndarray, shape (n_subjects, n_samples)
+    aligned : np.ndarray
+        shape (n_subjects, n_samples)
         Output of isc_analysis.align_series.
-    isc_observed : np.ndarray, shape (n_subjects,)
+    isc_observed : np.ndarray
+        shape (n_subjects,)
         Output of isc_analysis.isc_hr (the real, unshuffled ISC-HR values).
     n_perm : int
-        Number of permutations per subject (10,000 in the paper).
+        Number of permutations per subject.
     seed : int or None
         Fixes the random number generator so the same result can be
         reproduced exactly on a re-run.
@@ -164,7 +164,7 @@ def permutation_test(aligned, isc_observed, n_perm=10000, seed=None, verbose=Fal
     Returns
     -------
     p_values : np.ndarray, shape (n_subjects,)
-        One p-value per subject, in the same order as isc_observed.
+        One p-value per subject.
     """
     rng = np.random.default_rng(seed)
     n_subjects = aligned.shape[0]
@@ -175,7 +175,7 @@ def permutation_test(aligned, isc_observed, n_perm=10000, seed=None, verbose=Fal
         others = others_list[i] if others_list is not None else np.delete(aligned, i, axis=0)
         null = null_distribution_for_subject(subject_series, others, n_perm=n_perm, rng=rng)
         # With the plain proportion, a subject whose observed value beats all 10,000 permutations gets
-        # p = 0 exactly, which claims chance could never produce this result.
+        # p = 0 exactly, which claims chance could never produce this result. So adding + 1 at both num and den solve the problem.
         n_exceeding = np.sum(null >= isc_observed[i])
         p_values[i] = (n_exceeding + 1) / (n_perm + 1)
         if verbose:
@@ -193,21 +193,22 @@ def benjamini_hochberg(p_values, alpha=0.05):
     FDR(False Discovery Rate) correction controls the expected proportion of false
     positives among the subjects called significant.
 
-    Procedure: sort p-values ascending; find the largest rank k such that
-    p(k) <= (k/n) * alpha; every p-value at or below that rank is significant.
+    Procedure: 
+    Sort p-values ascending. Find the largest rank k such that p(k) <= (k/n) * alpha. 
+    Every p-value at or below that rank is significant.
 
     Parameters
     ----------
-    p_values : np.ndarray, shape (n_subjects,)
+    p_values : np.ndarray
+        shape (n_subjects,)
     alpha : float
-        The overall false discovery rate we are willing to tolerate across
-        the whole batch.
+        The overall false discovery rate we are willing to tolerate across the whole batch.
 
     Returns
     -------
-    significant : np.ndarray of bool, shape (n_subjects,)
-        True where the subject's ISC-HR is significant after FDR correction,
-        in the SAME order as the input p_values (not sorted).
+    significant : np.ndarray of bool
+        shape (n_subjects,)
+        True where the subject's ISC-HR is significant after FDR correction.
     """
     n = len(p_values)
     order = np.argsort(p_values)
@@ -220,7 +221,7 @@ def benjamini_hochberg(p_values, alpha=0.05):
     if not np.any(below):
         return np.zeros(n, dtype=bool)
 
-    # largest rank still satisfying the condition; everything up to it is significant
+    # largest rank still satisfying the condition. Everything up to it is significant
     k_max = np.max(np.where(below)[0])
     significant_sorted = np.zeros(n, dtype=bool)
     significant_sorted[:k_max + 1] = True
@@ -234,9 +235,8 @@ def benjamini_hochberg(p_values, alpha=0.05):
 def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=None, verbose=False,others_list=None,show_sub=False,ids=None):
     """
     This function run the full hypothesis test (permutation test + FDR correction).
-    
     It runs the permutation test for every subject, then apply the FDR correction across all of them.
-    permutation_test and benjamini_hochberg above are the two steps it executes.
+    
     
     Returns
     -------
@@ -247,11 +247,11 @@ def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=No
         'n_subjects'  : int — total subjects tested
     """
     p_values = permutation_test(aligned, isc_observed, n_perm=n_perm,
-                                 seed=seed, verbose=verbose, others_list=others_list)
+                                seed=seed, verbose=verbose, others_list=others_list)
     significant = benjamini_hochberg(p_values, alpha=alpha)
     if show_sub:
         sig_ids = sorted(s for s, sig in zip(ids, significant) if sig)
-        print(f"  significativi: {sig_ids}")
+        print(f"  significants: {sig_ids}")
 
     return {
         'p_values': p_values,
@@ -259,4 +259,3 @@ def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=No
         'n_significant': int(significant.sum()),
         'n_subjects': len(isc_observed),
     }
-
