@@ -13,12 +13,17 @@ Set EXPERIMENT_ROOT to the Experiment root on your machine.
 Set STAGES_TO_RUN below to choose which one to run.
 """
 
+import os,sys
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(ROOT, 'src'))
+
 from single_recording import process_single_recording
 from isc_analysis import run_isc_hr_pipeline, run_pipeline_all_combinations, summary_table
 from hypothesis_test import run_hypothesis_test
 from attention_comparison import run_attention_modulation, run_anova_r2
 
-EXPERIMENT_ROOT = 'data'   # adjust to the real Experiment 2 root
+EXPERIMENT_ROOT = os.path.join(ROOT, 'src/data')   # adjust to the real Experiment 2 root
 
 STAGES_TO_RUN = [1, 2, 3, 4]     # Executes all stages
 #STAGES_TO_RUN = [1]             # Executes only single subject ECG processing pipeline
@@ -115,6 +120,9 @@ def run_stage4_attention_modulation(n_perm=10000, alpha=0.05, seed=42):
 #           MAIN    
 #############################################
 if __name__ == '__main__':
+    if not os.path.isdir(EXPERIMENT_ROOT):
+        sys.exit(f"Data folder not found: {EXPERIMENT_ROOT}")
+        
     stages = {
         1: ('Stage 1: single subject ECG processing pipeline', run_stage1_pilot),
         2: ('Stage 2: ISC-HR and hypothesis test for one combination of (session,stimulus)', run_stage2),
