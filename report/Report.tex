@@ -311,7 +311,7 @@ A significant result ($p<0.05$) for a given stimulus indicates that attention mo
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{hypothesis_test_with_fixed_reference.png}
-    \caption{Bar chart illustrating the results of significance test in which every distracted subject is correlated against the fixed attentive group instead of against other distracted subjects.}
+    \caption{Mean ISC-HR per stimulus in the attentive condition and in the distracted condition. Each distracted subject is correlated against the fixed attentive group instead of against other distracted subjects.}
     \label{hypothesis_test_with_fixed_reference}
 \end{figure}
 
@@ -355,7 +355,7 @@ ISC-HR for each subject is derived from this matrix as described in Section~\ref
 \end{figure}
 
 
-Table~\ref{tab:r1} summarizes ISC-HR results across all five stimuli, for both attentive and distracted (within-group) conditions. In this specific case, as already anticipated in the previous sections, the distracted condition is correlated within-group, not against the attentive reference.
+Table~\ref{tab:r1} summarizes ISC-HR results across all five stimuli, for both attentive and distracted conditions. In this specific case, as already anticipated in the previous sections, the distracted condition is correlated within-group, not against the attentive reference.
 
 \begin{table}[htbp]
 \centering
@@ -413,7 +413,7 @@ The ANOVA results are reported below.
 \end{itemize}
 
 Both main effects (Attention and Stimulus) are significant.
-The interaction term is not significant, although the test has limited power to detect small differences in the attention effect across stimuli.\\
+The interaction term is not significant.\\
 Only 24 subjects in R2 have a complete design across all five stimuli and both conditions, while the remaining 4 are dropped because a fully balanced design is required.
 
 \subsubsection{stim02 and stim03: different patterns behind similar $p$-values}\label{subsec8}
@@ -431,13 +431,12 @@ One possible explanation of stim03's weaker result is the lower attentive baseli
 Attentive viewing produces significant inter-subject heart-rate synchrony which is reduced under distraction. However, direct numerical comparison with the paper's reported figures should be treated with some caution.
 BBBD's data descriptor explicitly attributes Experiment 2's ECG data to Pérez et al., 2021~\cite{perez2021} (Section~\ref{sec3}), confirming the same underlying raw recordings used here.\\ However, the paper we based the work on, does not specify the exact peak detection parameters (amplitude threshold, refractory distance) used.\\
 Exact numerical agreement with the original study is therefore not guaranteed, even on the same raw signal, since this project's peak-detection parameters (Section~\ref{subsec5}) are an independent choice.\\
-The original paper reports that the effect of attention is significant for each video individually (follow-up pairwise $t$-test, all $p<0.05$), and that ISC-HR numerically drops under distraction for 26 of 27 subjects when averaged across videos.\\
+The original paper reports that the effect of attention is significant for each video individually (pairwise $t$-test, all $p<0.05$), and that ISC-HR numerically drops under distraction for 26 of 27 subjects when averaged across videos.\\
 In this project instead the paired comparison reached significance for 3 of 5 stimuli.\\
 Regarding the significance of the ISC-HR synchrony across subjects, we compare against experiment 1 of the paper, which is an audio only narrative without distraction session. The paper reports 17 of 27 subjects (63\%) having statistically significant HR correlation, which is comparable with what this project found in attentive condition (from 17.9\% to 48.1\% depending on stimulus, Table~\ref{tab:r1} ). However, it is clearly not a direct like for like comparison.\\
 The ANOVA's main effects agree with the original paper in direction and significance. As already mentioned in Section ~\ref{subsec7} both main effects are confirmed. The reported F-statistics are not directly comparable in magnitude, since the paper's model includes a random subject effect not replicated here.\\
 Attention significantly affects ISC-HR and so does the stimulus. This, united with per-stimulus paired tests, shows that the attention effect holds not only stimulus by stimulus, but also when all five stimuli are analyzed jointly in a single model.\\
-The interaction between attention and stimulus is not significant, meaning the size of the attention effect may not depend on which video is being watched.
-However, as already mentioned, the computed test has limited power to detect small differences in the attention effect across stimuli.\\
+The interaction between attention and stimulus is not significant, meaning the size of the attention effect may not depend on which video is being watched.\\
 The differences from the original study's R1 and R2 figures noted above are plausibly attributable to the peak-detection parameter approaches (Section~\ref{subsec1}) and other criteria already mentioned in previous sections.\\
 In addition, the BBBD data descriptor was published several years after the original paper, although the Experiment 2 recordings themselves originate from the original study.
 The timing difference is a further reason to treat numerical comparison as plausibility check rather than exact validation.
