@@ -20,12 +20,14 @@ from attention_comparison import run_attention_modulation, run_anova_r2
 
 EXPERIMENT_ROOT = 'data'   # adjust to the real Experiment 2 root
 
-STAGES_TO_RUN = [1, 2, 3, 4]       # Executes all stages
+STAGES_TO_RUN = [1, 2, 3, 4]     # Executes all stages
 #STAGES_TO_RUN = [1]             # Executes only single subject ECG processing pipeline
 #STAGES_TO_RUN = [2]             # Executes only ISC-HR for all subjects and hypothesis test on a single combination(session,stimulus)
 
 def run_stage1_pilot():
-    """Stage 1: single subject ECG processing pipeline"""
+    """
+    Stage 1: single subject ECG processing pipeline
+    """
     tsv = f'{EXPERIMENT_ROOT}/sub-01/ses-01/beh/sub-01_ses-01_task-stim01_recording-ecg_physio.tsv.gz'
     js = f'{EXPERIMENT_ROOT}/sub-01/ses-01/beh/sub-01_ses-01_task-stim01_recording-ecg_physio.json'
 
@@ -41,7 +43,7 @@ def run_stage2(session='ses-01', stim='stim01', n_perm=10000, alpha=0.05, seed=4
     """
 
     r = run_isc_hr_pipeline(EXPERIMENT_ROOT, session, stim,
-                             n_perm=n_perm, alpha=alpha, seed=seed, verbose=True)
+                            n_perm=n_perm, alpha=alpha, seed=seed, verbose=True)
 
     print(f"\n{r['n_subjects']} subjects analysed "
           f"({len(r['dropped'])} dropped by QC).")
