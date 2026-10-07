@@ -2,7 +2,7 @@
 Inter-subject correlation of heart rate (ISC-HR).
 
 single_recording.py processes one recording into an interpolated HR series.
-This file calls that once per subject, then measures how much their heart-rate
+This file calls that procedure once per subject, then measures how much their heart-rate
 fluctuations move in sync while listening to the same stimulus.
 
 There are also two functions which executes the hypothesis test for one combination(session,stimulus)
@@ -23,7 +23,7 @@ def collect_hr_series(experiment_root, session, stim, subjects=None, verbose=Fal
     Parameters
     ----------
     experiment_root : str
-        Root folder of the experiment (the one containing sub-01, sub-02, ...).
+        Root folder of the experiment.
     session : str
         'ses-01' (Attentive) or 'ses-02' (Distracted).
     stim : str
@@ -69,10 +69,28 @@ def filter_by_hr_range(ids, series, mean_hrs, low=40.0, high=160.0, verbose=Fals
     Automatic filter which drops subjects whose mean HR falls outside a physiologically
     plausible range (default 40-160 BPM).
 
+
+    Parameters
+    ----------
+    ids : list[str]
+        Subject identifiers, for example 'sub-01'.
+    series : list[numpy.ndarray]
+        HR series of the subjects, same order as ids.
+    mean_hrs : list[float]
+        Mean instantaneous HR of each subject, in BPM, same order as ids.
+    low : float, optional
+        Lower bound of the accepted mean HR, in BPM (default 40.0).
+    high : float, optional
+        Upper bound of the accepted mean HR, in BPM (default 160.0).
+    verbose : bool, optional
+        If True, print a line for every excluded subject (default False).
+
     Returns
     -------
     ids_kept : list[str]
-    series_kept : list[np.ndarray]
+        Identifiers of the subjects that passed the check, in the original order.
+    series_kept : list[numpy.ndarray]
+        Their HR series, in the same order as ids_kept.
     dropped : list[tuple[str, float]]
         (subject id, mean HR) for every subject excluded.
     """
@@ -90,7 +108,6 @@ def filter_by_hr_range(ids, series, mean_hrs, low=40.0, high=160.0, verbose=Fals
 
 
 
-
 def align_series(series):
     """
     Truncate all HR series to the shortest common length.
@@ -99,9 +116,16 @@ def align_series(series):
     have slightly different durations, so their interpolated series differ in
     length by a few samples.
 
+    Parameters
+    ----------
+    series : list[numpy.ndarray]
+        HR series of the subjects, one-dimensional arrays sampled on the
+        common grid. They are assumed to start at the same instant.
+
     Returns
     -------
-    np.ndarray, shape (n_subjects, min_length)
+    numpy.ndarray, shape (n_subjects, min_length)
+        Matrix with one row per subject, all cut to the length of the shortest series.
     """
     min_len = min(len(s) for s in series)
     return np.array([s[:min_len] for s in series])
@@ -111,9 +135,18 @@ def correlation_matrix(aligned):
     """
     Pearson correlation coefficient between every pair of subjects.
 
+    
+    Parameters
+    ----------
+    aligned : numpy.ndarray
+        shape (n_subjects, n_samples)
+        HR series of the subjects, one row per subject, all of the same length.
+        (output of align_series).
+
     Returns
     -------
-    np.ndarray, shape (n_subjects, n_subjects)
+    numpy.ndarray
+        shape (n_subjects, n_subjects)
         Symmetric matrix; entry (i, j) is the correlation between subject i and
         subject j. The diagonal is 1 (each subject correlated with itself).
     """
@@ -126,10 +159,18 @@ def isc_hr(corr):
     """
     the ISC-HR value of each subject.
 
+    
+    Parameters
+    ----------
+    corr : numpy.ndarray
+        shape (n_subjects, n_subjects)
+        Pearson correlation matrix between subjects (output of correlation_matrix). 
+
     Returns
     -------
-    np.ndarray, shape (n_subjects,)
-        The ISC-HR value for each subject (same order as the matrix rows).
+    numpy.ndarray
+        shape (n_subjects,)
+        The ISC-HR value for each subject, on the correlation scale (between -1 and 1).
     """
     c = corr.copy()
     np.fill_diagonal(c, np.nan)      # exclude self-correlation before transform
@@ -208,7 +249,7 @@ def run_pipeline_all_combinations(experiment_root, sessions=None, stimuli=None,
     ----------
     experiment_root : str
     sessions, stimuli : list[str] or None
-        Defaults to the full 2x5 = 10 combinations (SESSIONS, STIMULI above).
+        (SESSIONS, STIMULI above).
     hr_low, hr_high : float
         filter bounds passed to filter_by_hr_range.
     n_perm, alpha, seed : 
@@ -248,8 +289,8 @@ def summary_table(results):
 
     Returns
     -------
-    list[dict], each with: session, stim, n_subjects, n_dropped, mean_isc,
-    n_significant, pct_significant
+    list[dict]
+        each with: session, stim, n_subjects, n_dropped, mean_isc, n_significant, pct_significant
     """
     rows = []
     for r in results:
