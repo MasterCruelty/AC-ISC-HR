@@ -1,5 +1,5 @@
 """
-peak_detection.py — Locating R peaks in the filtered ECG(electrocardiogram).
+peak_detection.py --> Locating R peaks in the filtered ECG(electrocardiogram).
 
 Here we find the temporal position of every R-peak.
 approach: amplitude thresold + minimum distance.
@@ -32,21 +32,23 @@ def detect_r_peaks(filtered_ecg, fs, min_rr_s=0.3, height_std_mult=3.0):
 
     Parameters
     ----------
+    filtered_ecg : numpy.ndarray
+        Filtered ECG signal (output of preprocess), one-dimensional array.
+    fs : float
+        Sampling frequency of the signal, in Hz.
     min_rr_s : float
         Minimum allowed interval between consecutive beats, in seconds.
-        0.3 s corresponds to a ceiling of 200 BPM; it prevents double-detection.        
+        0.3 s corresponds to a ceiling of 200 BPM. It prevents double-detection.        
     height_std_mult : float
-        Amplitude threshold, expressed as a multiple of the filtered
-        signal's standard deviation.
+        Amplitude threshold, expressed as a multiple of the filtered signal's standard deviation.
 
     Returns
     -------
     peaks : np.ndarray
         Sample indices of the detected R peaks.
     threshold : float
-        The amplitude threshold actually used (mV), for logging/QC.
+        The amplitude threshold actually used (mV).
     """
-
 
     #conversion of temporal contraint in sample number.
     min_distance_samples = int(min_rr_s * fs)

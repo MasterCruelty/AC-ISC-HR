@@ -1,5 +1,5 @@
 """
-hr_analysis.py — From R-peak positions to instantaneous heart-rate series.
+hr_analysis.py --> From R-peak positions to instantaneous heart-rate series.
 
 
 1. instantanous_hr
@@ -16,11 +16,11 @@ Example: RR = 0.8 -> HR = 60 / 0.8 = 75 BPM
 
 2. interpolate_hr
 The hr series calculate with the previous function isnt sampled at regular intervals.
-We have a HR value at every beat, but the beats aren't happening at stable interavals.
+We have a HR value at every beat, but the beats aren't happening at stable intervals.
 So we need two vectors of the same length aligned on the same temporal istants.
 
 Solution: re-sample every individual HR serie on a common temporal grid by interpolation.
-Interpolation basically estimate the value of the function on an average point not directly measured.
+Interpolation estimates the value of a signal at instants where it was not measured, using the nearby measured points.
 
 
 """
@@ -43,9 +43,12 @@ def instantaneous_hr(peaks, fs):
     
     Returns
     ---------
-    t_hr : np.ndarray   — timestamps (s), irregular
-    hr   : np.ndarray   — instantaneous HR (BPM), irregular
-    rr   : np.ndarray   — RR intervals (s), for QC/reporting
+    t_hr : np.ndarray
+        timestamps (s), irregular
+    hr   : np.ndarray
+        instantaneous HR (BPM), irregular
+    rr   : np.ndarray
+        RR intervals (s)
     """
 
     # np.diff calculates difference between consecutives elements.
@@ -70,18 +73,42 @@ def interpolate_hr(t_hr, hr, fs_common=4.0, kind='cubic'):
     """
     Resample the irregular beat-to-beat HR series onto a regular grid.
 
-    fs_common=4.0 Hz is a standard choice in the HRV literature;
+    fs_common=4.0 Hz is a standard choice in the HRV literature.
+
+
+    Parameters
+    ----------
+    t_hr : numpy.ndarray
+        Timestamps of the HR values, in seconds, in increasing order
+        (one per beat, at the midpoint of each R-R interval).
+    hr : numpy.ndarray
+        Instantaneous heart rate values, in BPM, same length as t_hr.
+    fs_common : float, optional
+        Sampling frequency of the common grid, in Hz (default 4.0, one
+        sample every 0.25 s). It is not specified by the original paper, so it is an
+        implementation choice.
+    kind : str, optional
+        Interpolation method passed to scipy.interpolate.interp1d
+        (default 'cubic', a cubic spline).
+
+    Returns
+    -------
+    t_common : numpy.ndarray
+        Regular time grid, in seconds, from the first timestamp up to (but
+        excluding) the last one.
+    hr_interp : numpy.ndarray
+        Estimated HR in BPM at every point of t_common.
     """
     # creation of the temporal grid, it starts from first timestamp to the last one.
     # the step is 1/4 = 0.25 seconds by giving fs_common = 4.0
     t_common = np.arange(t_hr[0], t_hr[-1], 1 / fs_common)
 
-    # build of interpolation function that given irregolar points, 
+    # build of interpolation function that given irregolar points. 
     # it returns an estimated HR value for every average temporal istant requested, by using cubic specified method.
     f = interp1d(t_hr, hr, kind=kind)
 
     # Evaluation of estimated HR value for every point of the new grid t_common.
-    # Result: definitive HR serie now at 0.25 seconds interavals.
+    # Result: definitive HR serie now at 0.25 seconds intervals.
     # It's ready to be compared with every subject re-sampled with the same procedure.
     hr_interp = f(t_common)
     return t_common, hr_interp
