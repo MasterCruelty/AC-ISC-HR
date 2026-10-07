@@ -241,10 +241,14 @@ def run_hypothesis_test(aligned, isc_observed, n_perm=10000, alpha=0.05, seed=No
     Returns
     -------
     dict with keys:
-        'p_values'    : np.ndarray (n_subjects,) — uncorrected p-values
-        'significant' : np.ndarray of bool (n_subjects,) — after FDR correction
-        'n_significant': int — how many subjects pass
-        'n_subjects'  : int — total subjects tested
+        'p_values'    : np.ndarray 
+            (n_subjects,) uncorrected p-values
+        'significant' : np.ndarray of bool 
+            (n_subjects,)  after FDR correction
+        'n_significant': int
+            how many subjects pass
+        'n_subjects'  : int 
+            total subjects tested
     """
     p_values = permutation_test(aligned, isc_observed, n_perm=n_perm,
                                 seed=seed, verbose=verbose, others_list=others_list)

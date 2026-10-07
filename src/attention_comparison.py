@@ -1,4 +1,6 @@
 """
+attention_comparison.py --> reproducing R2 by veryfing if attention modulate the ISC-HR.
+
 Considering the paper we're using as reference, ISC-HR for both the
 attentive and the distracted condition is computed against the attentive
 group's HR as a fixed reference, not within each condition separately.
@@ -11,6 +13,8 @@ ISC-HR across subjects, for each of the 5 stimuli:
 First of all, a Shapiro-Wilk normality check on the paired differences is made,
 followed by a paired t-test or a Wilcoxon signed-rank test depending on
 that result.
+
+In addition, an ANOVA test is computed to make the obtained results more solid.
 """
 
 import numpy as np
@@ -26,26 +30,24 @@ from hypothesis_test import zscore, fisher_average, run_hypothesis_test
 
 def isc_hr_referenced(target_ids, target_aligned, reference_ids, reference_aligned):
     """
-    ISC-HR of each target subject, computed against a fixed reference group
-    (the attentive group), instead of against the rest of the target's own
-    group.
+    ISC-HR of each target subject, computed against a fixed reference group (the attentive group).
 
     For every target subject, this correlates their series against every
-    series in the reference group, then averages those correlations in
-    Fisher-Z space.
+    series in the reference group, then averages those correlations in Fisher-Z space.
 
     Parameters
     ----------
     target_ids : list[str]
-    target_aligned : np.ndarray, shape (n_target, n_samples)
+    target_aligned : np.ndarray
+        shape (n_target, n_samples)
     reference_ids : list[str]
-    reference_aligned : np.ndarray, shape (n_reference, n_samples)
-        Must have the same n_samples as target_aligned. Align both groups
-        together first (see run_attention_comparison_one_stim below).
+    reference_aligned : np.ndarray
+        shape (n_reference, n_samples)
 
     Returns
     -------
-    np.ndarray, shape (n_target,)
+    np.ndarray
+        shape (n_target,)
     """
     n_samples = target_aligned.shape[1]
     z_target = zscore(target_aligned)
@@ -87,16 +89,16 @@ def run_attention_comparison_one_stim(experiment_root, stim, hr_low=40.0, hr_hig
     """
     This function runs the pipeline by collecting both conditions, 
     applying quality control filtering, aligning them together, 
-    then computing ISC-HR differently per condition:
-    standard within-group for attentive, attentive-referenced for distracted. 
+    then computing ISC-HR differently per condition.
+    Standard within-group for attentive, attentive-referenced for distracted. 
     It then runs the hypothesis test on both.
 
     Returns
     -------
     dict with keys:
-        'stim'                : str
-        'attentive_ids', 'distracted_ids' : list[str] (post-QC)
-        'attentive_isc', 'distracted_isc' : np.ndarray
+        'stim'                                  : str
+        'attentive_ids', 'distracted_ids'       : list[str] (post-QC)
+        'attentive_isc', 'distracted_isc'       : np.ndarray
         'attentive_result', 'distracted_result' : dict (see run_hypothesis_test)
     """
 
@@ -150,10 +152,18 @@ def paired_differences(one_stim_result):
     attentive_ids and distracted_ids, they only appear in the output.
     sub-02 (attentive only) and sub-05 (distracted only) are dropped.
 
+    Parameters
+    ----------
+    one_stim_result : dict
+        Result of the (attentive, distracted) comparison for one stimulus.
+        (the dict returned by run_attention_comparison_one_stim).
+
     Returns
     -------
-    ids : list[str]  subjects present in both conditions
-    diffs : np.ndarray  attentive_isc - distracted_isc, same order as ids
+    ids : list[str]
+        subjects present in both conditions
+    diffs : np.ndarray
+        attentive_isc - distracted_isc
     """
     att_ids = one_stim_result['attentive_ids']
     dis_ids = one_stim_result['distracted_ids']
@@ -172,8 +182,7 @@ def run_attention_modulation(experiment_root, stimuli=None, hr_low=40.0, hr_high
                              n_perm=10000, alpha=0.05, seed=42, verbose=False):
     """
     This function run comparison_one_stim for every stimulus,
-    then decide once (by doing a Shapiro-Wilk test on all paired differences across all stimulus)
-    whether to use a paired t-test or a Wilcoxon signed-rank test,
+    then decide once whether to use a paired t-test or a Wilcoxon signed-rank test,
     applying the same choice to every stimulus individually.
 
     Returns
@@ -236,10 +245,20 @@ def build_long_format(per_stim):
     in order to use AnovaRM which need that every subject must have a value for
     every stimulus x condition combination.
 
+    Parameters
+    ----------
+    per_stim : list[dict]
+        Per-stimulus results, which is result['per_stim'] from
+        run_attention_modulation. Each dict must contain 'stim' (stimulus
+        name), 'attentive_ids' and 'distracted_ids' (lists of subject ids),
+        'attentive_isc' and 'distracted_isc' (the ISC-HR of each subject).
+
+
     Returns
     -------
-    df : pandas.DataFrame, columns: subject, stimulus, condition, isc_hr
-        only subjects present in all combinations are kept.
+    df : pandas.DataFrame
+         columns: subject, stimulus, condition, isc_hr
+         only subjects present in all combinations are kept.
     dropped : list[str]
         subjects excluded because their design was incomplete.
     """    
@@ -266,6 +285,12 @@ def run_anova_r2(per_stim, verbose=False):
     """
     This function run ANOVA (attention x stimulus),
     reporting fixed effects for attention and video.
+
+    Parameters
+    ----------
+    per_stim : list[dict]
+        Per-stimulus results, which is result['per_stim'] from run_attention_modulation.
+
 
     Returns
     -------
